@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart'; // Solusi untuk GetStorage merah
+// import 'package:get_storage/get_storage.dart'; // Solusi untuk GetStorage merah
 import 'routes/app_pages.dart';             // Solusi untuk AppRoutes merah
-import 'bindings/initial_binding.dart';     // Solusi untuk InitialBinding merah
+import 'bindings/initial_binding.dart';  
+import 'services/database_service.dart' ;  // Solusi untuk InitialBinding merah
 
 void main() async {
-  await GetStorage.init();
+  await Get.putAsync(() => DatabaseService().init());
   runApp(const EcoStepApp());
 }
 

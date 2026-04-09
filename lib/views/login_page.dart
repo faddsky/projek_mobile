@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'login_controller.dart';
+import '../controllers/login_controller.dart';
+import 'signup_page.dart'; // Import halaman signup
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -12,24 +13,25 @@ class LoginPage extends StatelessWidget {
     final passController = TextEditingController();
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(30.0),
           child: Column(
             children: [
-              const SizedBox(height: 80),
+              const SizedBox(height: 50),
               // Logo/Icon Aesthetic
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  shape: BoxType.circle,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE8F5E9),
+                  shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.eco_rounded, size: 80, color: Color(0xFF6B8E23)),
               ),
               const SizedBox(height: 20),
               Text("Welcome Back!", 
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green[900])),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.green[900])),
               const Text("EcoStep: Green Lifestyle Partner", style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 50),
               
@@ -40,6 +42,10 @@ class LoginPage extends StatelessWidget {
                   labelText: "Username",
                   prefixIcon: const Icon(Icons.person_outline),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: Color(0xFF6B8E23), width: 2),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -56,6 +62,10 @@ class LoginPage extends StatelessWidget {
                     onPressed: () => controller.isPasswordVisible.toggle(),
                   ),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: Color(0xFF6B8E23), width: 2),
+                  ),
                 ),
               )),
               
@@ -70,6 +80,7 @@ class LoginPage extends StatelessWidget {
                     backgroundColor: const Color(0xFF6B8E23),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    elevation: 2,
                   ),
                   onPressed: () => controller.login(userController.text, passController.text),
                   child: const Text("Login", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -77,15 +88,32 @@ class LoginPage extends StatelessWidget {
               ),
               
               const SizedBox(height: 20),
-              const Text("OR"),
-              const SizedBox(height: 20),
+              const Text("OR", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
               
               // Button Biometric
               IconButton(
-                icon: const Icon(Icons.fingerprint, size: 50, color: Color(0xFF6B8E23)),
+                icon: const Icon(Icons.fingerprint, size: 60, color: Color(0xFF6B8E23)),
                 onPressed: () => controller.loginWithBiometric(),
               ),
-              const Text("Use Biometric", style: TextStyle(fontSize: 12)),
+              const Text("Use Biometric", style: TextStyle(fontSize: 12, color: Colors.grey)),
+              
+              const SizedBox(height: 40),
+              
+              // Navigasi ke Sign Up
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have an account? "),
+                  GestureDetector(
+                    onTap: () => Get.to(() => const SignUpPage()),
+                    child: const Text(
+                      "Sign Up",
+                      style: TextStyle(color: Color(0xFF6B8E23), fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
