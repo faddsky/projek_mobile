@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:projek_mobile/services/api_service.dart';
+import 'package:projek_mobile/services/database_service.dart';
 import '../controllers/dashboard_controller.dart';
 import 'scan_page.dart';
 import '../controllers/scan_controller.dart';
+import 'alarm_page.dart'; // Import halaman daftar alarm kamu
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -13,10 +16,31 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
+  // Fungsi Salam Dinamis berdasarkan waktu HP
+  String getGreeting() {
+    var hour = DateTime.now().hour;
+    if (hour < 11) return "Selamat pagi,";
+    if (hour < 15) return "Selamat siang,";
+    if (hour < 18) return "Selamat sore,";
+    return "Selamat malam,";
+  }
+
+  // Fungsi navigasi ke halaman DAFTAR ALARM (Bukan langsung tambah)
+  void _goToAlarmPage() {
+    Get.to(() => const AlarmPage());
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Inisialisasi controller
+    // Inisialisasi controller pedometer
     final controller = Get.put(DashboardController());
+
+    // Ambil Username dari Database Hive
+    var sessionBox = Hive.box(DatabaseService.sessionBox);
+    String? currentUser = sessionBox.get('currentUser'); 
+    var authBox = Hive.box(DatabaseService.authBox);
+    var userData = authBox.get('user_$currentUser');
+    String username = userData?['username'] ?? 'User';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF8),
@@ -26,19 +50,19 @@ class _HomeTabState extends State<HomeTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Dila
+              // Header Dinamis (Salam & Nama)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Semangat pagi,",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      Text(
+                        getGreeting(),
+                        style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       Text(
-                        "Dila ✨",
+                        "$username ✨",
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -104,7 +128,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                     const SizedBox(height: 20),
 
-                    // TOMBOL SIMPAN KE CLOUD
+                    // Tombol Simpan ke Cloud
                     ElevatedButton.icon(
                       onPressed: () async {
                         try {
@@ -112,33 +136,18 @@ class _HomeTabState extends State<HomeTab> {
                             "Aktivitas Berjalan",
                             controller.stepCount.value,
                           );
-                          Get.snackbar(
-                            "Berhasil!",
-                            "Data tersimpan di Cloud Google ☁️",
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.white.withOpacity(0.9),
-                          );
-                          setState(() {}); // Refresh list riwayat di bawah
+                          Get.snackbar("Berhasil!", "Data tersimpan di Cloud Google ☁️",
+                              snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.white);
+                          setState(() {}); 
                         } catch (e) {
-                          Get.snackbar(
-                            "Waduh!",
-                            "Server Cloud-nya belum nyala, Dil! 😅",
-                          );
+                          Get.snackbar("Error", "Gagal konek server Cloud, Dil! 😅");
                         }
                       },
-                      icon: const Icon(
-                        Icons.cloud_upload,
-                        color: Color(0xFF6B8E23),
-                      ),
-                      label: const Text(
-                        "Simpan ke Cloud",
-                        style: TextStyle(color: Color(0xFF6B8E23)),
-                      ),
+                      icon: const Icon(Icons.cloud_upload, color: Color(0xFF6B8E23)),
+                      label: const Text("Simpan ke Cloud", style: TextStyle(color: Color(0xFF6B8E23))),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       ),
                     ),
                   ],
@@ -161,7 +170,6 @@ class _HomeTabState extends State<HomeTab> {
                       Colors.orange[50]!,
                       Colors.orange,
                       () {
-                        // Navigasi langsung tanpa rute, sambil inject ScanController
                         Get.to(
                           () => const ScanPage(),
                           binding: BindingsBuilder(() {
@@ -172,13 +180,14 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                   ),
                   const SizedBox(width: 15),
+                  // CARD ALARM (Buka AlarmPage yang berisi daftar alarm)
                   Expanded(
                     child: _buildToolCard(
-                      "E-Waste Guide",
-                      Icons.auto_stories_rounded,
+                      "Jadwal Sampah",
+                      Icons.alarm_on_rounded,
                       Colors.blue[50]!,
                       Colors.blue,
-                      () {},
+                      () => _goToAlarmPage(), 
                     ),
                   ),
                 ],
@@ -198,8 +207,7 @@ class _HomeTabState extends State<HomeTab> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                    var items = snapshot.data!.reversed
-                        .toList(); // Terbaru di atas
+                    var items = snapshot.data!.reversed.toList();
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -214,32 +222,16 @@ class _HomeTabState extends State<HomeTab> {
                             side: BorderSide(color: Colors.green.shade50),
                           ),
                           child: ListTile(
-                            leading: const Icon(
-                              Icons.cloud_done,
-                              color: Colors.green,
-                            ),
-                            title: Text(
-                              items[index]['aktivitas'] ?? "Aktivitas",
-                            ),
-                            subtitle: Text(
-                              "${items[index]['langkah']} Langkah",
-                            ),
-                            trailing: const Icon(
-                              Icons.check_circle_outline,
-                              color: Colors.grey,
-                              size: 20,
-                            ),
+                            leading: const Icon(Icons.cloud_done, color: Colors.green),
+                            title: Text(items[index]['aktivitas'] ?? "Aktivitas"),
+                            subtitle: Text("${items[index]['langkah']} Langkah"),
+                            trailing: const Icon(Icons.check_circle_outline, color: Colors.grey, size: 20),
                           ),
                         );
                       },
                     );
                   } else {
-                    return const Center(
-                      child: Text(
-                        "Belum ada data di Cloud",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    );
+                    return const Center(child: Text("Belum ada data di Cloud", style: TextStyle(color: Colors.grey)));
                   }
                 },
               ),
@@ -250,31 +242,18 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  // Widget pembantu buat kartu menu
-  Widget _buildToolCard(
-    String title,
-    IconData icon,
-    Color bg,
-    Color iconColor,
-    VoidCallback onTap,
-  ) {
+  Widget _buildToolCard(String title, IconData icon, Color bg, Color iconColor, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(25),
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(25),
-        ),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(25)),
         child: Column(
           children: [
             Icon(icon, size: 40, color: iconColor),
             const SizedBox(height: 10),
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
           ],
         ),
       ),

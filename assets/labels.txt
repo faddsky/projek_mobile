@@ -1,6 +1,7 @@
 cardboard
 glass
 metal
+organics
 paper
 plastic
-trash
+textile trash
