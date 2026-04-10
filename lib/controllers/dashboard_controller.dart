@@ -56,14 +56,5 @@ class DashboardController extends GetxController {
     });
   }
 
-  // Fungsi untuk AI Scanner placeholder
-  void scanWaste() {
-    Get.snackbar(
-      "Eco Scanner", 
-      "Kamera sedang disiapkan untuk scan sampah ✨",
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFFF0F4F0),
-      margin: const EdgeInsets.all(15),
-    );
-  }
+
 }
