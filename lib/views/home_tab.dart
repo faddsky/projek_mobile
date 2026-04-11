@@ -7,6 +7,8 @@ import '../controllers/dashboard_controller.dart';
 import 'scan_page.dart';
 import '../controllers/scan_controller.dart';
 import 'alarm_page.dart'; // Import halaman daftar alarm kamu
+import 'maps_page.dart'; // Nanti buat file ini
+import 'game_page.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -188,6 +190,32 @@ class _HomeTabState extends State<HomeTab> {
                       Colors.blue[50]!,
                       Colors.blue,
                       () => _goToAlarmPage(), 
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 35),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildToolCard(
+                      "TPS Terdekat",
+                      Icons.map_rounded,
+                      Colors.green[50]!,
+                      Colors.green,
+                      () => Get.to(() => const MapsPage()),
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: _buildToolCard(
+                      "Eco-Game",
+                      Icons.sports_esports_rounded,
+                      Colors.purple[50]!,
+                      Colors.purple,
+                      () => Get.to(() => const EcoGamePage()),
                     ),
                   ),
                 ],
