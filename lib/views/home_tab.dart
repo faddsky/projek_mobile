@@ -3,12 +3,14 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:projek_mobile/services/api_service.dart';
 import 'package:projek_mobile/services/database_service.dart';
+import 'package:projek_mobile/services/air_service.dart'; // Import service LBS baru kamu
 import '../controllers/dashboard_controller.dart';
 import 'scan_page.dart';
 import '../controllers/scan_controller.dart';
-import 'alarm_page.dart'; // Import halaman daftar alarm kamu
-import 'maps_page.dart'; // Nanti buat file ini
+import 'alarm_page.dart'; 
+import 'maps_page.dart'; 
 import 'game_page.dart';
+import 'notification_page.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -27,17 +29,104 @@ class _HomeTabState extends State<HomeTab> {
     return "Selamat malam,";
   }
 
-  // Fungsi navigasi ke halaman DAFTAR ALARM (Bukan langsung tambah)
+  // Fungsi navigasi ke halaman DAFTAR ALARM
   void _goToAlarmPage() {
     Get.to(() => const AlarmPage());
   }
 
+  // HELPER UI: Kualitas Udara (LBS)
+  Widget _buildAirCard() {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: AirService().getAirData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            height: 180,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: const Center(child: CircularProgressIndicator(color: Color(0xFF6B8E23))),
+          );
+        }
+        
+        if (snapshot.hasError) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.red[50],
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: const Center(child: Text("Aktifkan lokasi (GPS) untuk cek udara 📍")),
+          );
+        }
+
+        // Ambil nilai AQI (1-5) dari API
+        int aqi = snapshot.data!['list'][0]['main']['aqi'];
+        
+        List<String> status = ["", "Sangat Sehat 🌱", "Cukup Baik 👍", "Sedikit Polusi 😐", "Udara Buruk 😷", "Bahaya! ⚠️"];
+        List<Color> colors = [Colors.grey, const Color(0xFF8DAA91), const Color(0xFF6B8E23), Colors.orange, Colors.redAccent, Colors.purple];
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(25),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colors[aqi].withOpacity(0.8), colors[aqi]],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: colors[aqi].withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              const Text(
+                "Kualitas Udara Sekitarmu",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                status[aqi],
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.location_on, color: Colors.white70, size: 14),
+                  SizedBox(width: 5),
+                  Text(
+                    "Berdasarkan Lokasi (LBS) 📍",
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Inisialisasi controller pedometer
+    // Controller tetap dipasang jika game masih butuh Accelerometer
     final controller = Get.put(DashboardController());
+    final dbService = Get.find<DatabaseService>();
 
-    // Ambil Username dari Database Hive
     var sessionBox = Hive.box(DatabaseService.sessionBox);
     String? currentUser = sessionBox.get('currentUser'); 
     var authBox = Hive.box(DatabaseService.authBox);
@@ -73,88 +162,57 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                     ],
                   ),
-                  const Icon(
-                    Icons.notifications_none_rounded,
-                    size: 30,
-                    color: Color(0xFF6B8E23),
+                  
+                  GestureDetector(
+                    onTap: () {
+                      dbService.markAllAsRead();
+                      Get.to(() => const NotificationPage())?.then((_) {
+                        setState(() {});
+                      });
+                    },
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(
+                          Icons.notifications_none_rounded,
+                          size: 32,
+                          color: Color(0xFF6B8E23),
+                        ),
+                        if (dbService.getUnreadCount() > 0)
+                          Positioned(
+                            right: -2,
+                            top: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.redAccent,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Text(
+                                "${dbService.getUnreadCount()}",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 30),
 
-              // Card Pedometer Aesthetic
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(25),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF8DAA91), Color(0xFF6B8E23)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.2),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Langkah Kakimu Hari Ini",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    const SizedBox(height: 10),
-                    Obx(
-                      () => Text(
-                        "${controller.stepCount.value}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 55,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Obx(
-                      () => Text(
-                        "🌱 Hemat ${controller.carbonSaved.value.toStringAsFixed(2)}g CO2",
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+              // FITUR BARU: Air Quality LBS (Gantiin Pedometer)
+              _buildAirCard(),
 
-                    // Tombol Simpan ke Cloud
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        try {
-                          await ApiService.sendEcoData(
-                            "Aktivitas Berjalan",
-                            controller.stepCount.value,
-                          );
-                          Get.snackbar("Berhasil!", "Data tersimpan di Cloud Google ☁️",
-                              snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.white);
-                          setState(() {}); 
-                        } catch (e) {
-                          Get.snackbar("Error", "Gagal konek server Cloud, Dil! 😅");
-                        }
-                      },
-                      icon: const Icon(Icons.cloud_upload, color: Color(0xFF6B8E23)),
-                      label: const Text("Simpan ke Cloud", style: TextStyle(color: Color(0xFF6B8E23))),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 30),
 
               // Bagian Tool Cards
@@ -182,7 +240,6 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                   ),
                   const SizedBox(width: 15),
-                  // CARD ALARM (Buka AlarmPage yang berisi daftar alarm)
                   Expanded(
                     child: _buildToolCard(
                       "Jadwal Sampah",
@@ -195,7 +252,7 @@ class _HomeTabState extends State<HomeTab> {
                 ],
               ),
 
-              const SizedBox(height: 35),
+              const SizedBox(height: 15),
 
               Row(
                 children: [

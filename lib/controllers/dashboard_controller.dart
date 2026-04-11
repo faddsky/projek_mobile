@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:projek_mobile/services/database_service.dart'; // Import DatabaseService kamu
 
 class DashboardController extends GetxController {
   var stepCount = 0.obs;
@@ -18,6 +19,10 @@ class DashboardController extends GetxController {
   void onInit() {
     super.onInit();
     _initPedometer();
+    
+    // --- TAMBAHAN: CEK NOTIFIKASI TIPS SAAT DIBUKA ---
+    // Fungsi ini akan mengirim tips harian otomatis ke HP kamu
+    Get.find<DatabaseService>().checkAndSendGreenTip();
   }
 
   void _initPedometer() {
@@ -33,6 +38,12 @@ class DashboardController extends GetxController {
         }
       }
     });
+  }
+
+  // --- TAMBAHAN: FUNGSI RESET (OPSIONAL) ---
+  void resetSteps() {
+    stepCount.value = 0;
+    carbonSaved.value = 0.0;
   }
 
   void scanWaste() {

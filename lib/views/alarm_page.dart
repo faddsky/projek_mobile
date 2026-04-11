@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/database_service.dart';
@@ -13,58 +12,13 @@ class AlarmPage extends StatefulWidget {
 
 class _AlarmPageState extends State<AlarmPage> {
   final dbService = Get.find<DatabaseService>();
-  Timer? _checkerTimer;
 
   @override
   void initState() {
     super.initState();
-    // SATPAM: Cek setiap 15 detik (lebih sering biar makin akurat)
-    _checkerTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
-      if (mounted) {
-        _checkAndTriggerAlarm();
-      }
-    });
-    debugPrint("🚀 Satpam Alarm Mulai Bekerja...");
-  }
-
-  @override
-  void dispose() {
-    _checkerTimer?.cancel();
-    super.dispose();
-  }
-
-  void _checkAndTriggerAlarm() {
-    // Ambil waktu HP sekarang, hapus spasi, kecilkan semua huruf
-    // Contoh: "10:30 PM" -> "10:30pm"
-    final String now = TimeOfDay.now().format(context).replaceAll(' ', '').toLowerCase();
-    
-    final List<dynamic> alarms = dbService.getAlarmsFromActivity();
-
-    debugPrint("🧐 Pengecekan Rutin: Jam Sekarang ($now)");
-
-    for (var alarm in alarms) {
-      // Bersihkan juga waktu yang tersimpan di database
-      final String alarmTime = alarm['time'].toString().replaceAll(' ', '').toLowerCase();
-
-      // DEBUG: Cek di console VS Code apakah jamnya sudah "bertemu"
-      debugPrint("   --- Bandingkan: Database($alarmTime) vs Sekarang($now) | Status: ${alarm['isActive']}");
-
-      if (alarm['isActive'] == true && alarmTime == now) {
-        debugPrint("🔔 MATCH! Alarm Berbunyi Sekarang!");
-        
-        // Pemicu bunyi di DatabaseService
-        dbService.triggerAlarm(
-          alarm['time'].toString(), 
-          alarm['label'].toString()
-        );
-        
-        // Matikan status aktif agar tidak bunyi terus-menerus di menit yang sama
-        int index = alarms.indexOf(alarm);
-        dbService.updateAlarmStatus(index, false);
-        
-        if (mounted) setState(() {}); 
-      }
-    }
+    // LOG: Sekarang pengecekan manual (Timer) dihapus karena sudah
+    // menggunakan ZonedSchedule di DatabaseService agar bunyi di background.
+    debugPrint("🔔 Sistem Alarm Otomatis Aktif di Background...");
   }
 
   @override
@@ -176,7 +130,7 @@ class _AlarmPageState extends State<AlarmPage> {
   void _confirmDelete(int index) {
     Get.defaultDialog(
       title: "Hapus?",
-      middleText: "Jadwal ini mau dihapus, Dil?",
+      middleText: "Jadwal ini mau dihapus?",
       textConfirm: "Hapus",
       textCancel: "Batal",
       confirmTextColor: Colors.white,

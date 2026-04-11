@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:projek_mobile/services/api_service.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:projek_mobile/services/database_service.dart';
 import '../controllers/login_controller.dart';
 
@@ -14,22 +14,69 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage(
+    ImageSource source,
+    Box authBox,
+    String currentUser,
+    dynamic userData,
+  ) async {
+    final XFile? pickedFile = await _picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      var newData = Map<String, dynamic>.from(userData);
+      newData['profilePic'] = pickedFile.path;
+      await authBox.put('user_$currentUser', newData);
+      setState(() {});
+      Get.back();
+      Get.snackbar("Sukses", "Foto profil berhasil diperbarui! ✨", snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  void _showPickerOptions(Box authBox, String currentUser, dynamic userData) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Ganti Foto Profil", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Color(0xFF6B8E23)),
+              title: const Text("Kamera"),
+              onTap: () => _pickImage(ImageSource.camera, authBox, currentUser, userData),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Color(0xFF6B8E23)),
+              title: const Text("Galeri Foto"),
+              onTap: () => _pickImage(ImageSource.gallery, authBox, currentUser, userData),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final LoginController loginController = Get.put(LoginController());
+    final dbService = Get.find<DatabaseService>();
 
-    // 1. Ambil session user yang sedang aktif
     var sessionBox = Hive.box(DatabaseService.sessionBox);
-    String? currentUser = sessionBox.get('currentUser'); 
+    String? currentUser = sessionBox.get('currentUser');
 
-    // 2. Ambil data lengkap dari auth_box berdasarkan username fadilah
     var authBox = Hive.box(DatabaseService.authBox);
     var userData = authBox.get('user_$currentUser');
 
-    // 3. Ekstrak data (Username, Email, dan Foto)
-    String namaUser = userData?['username'] ?? 'Fadilah';
-    String emailUser = userData?['email'] ?? 'cikin@gmail.com';
-    String? fotoPath = userData?['profilePic']; 
+    String namaUser = userData?['username'] ?? 'User';
+    String emailUser = userData?['email'] ?? 'email@gmail.com';
+    String? fotoPath = userData?['profilePic'];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F1),
@@ -48,7 +95,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: CircleAvatar(
                         radius: 65,
                         backgroundColor: const Color(0xFF8DAA91),
-                        // Logika: Jika ada path foto di DB pakai File, jika tidak pakai Inisial
                         backgroundImage: (fotoPath != null && fotoPath.isNotEmpty)
                             ? FileImage(File(fotoPath)) as ImageProvider
                             : NetworkImage('https://ui-avatars.com/api/?name=$namaUser&background=8DAA91&color=fff'),
@@ -57,27 +103,26 @@ class _ProfilePageState extends State<ProfilePage> {
                     Positioned(
                       bottom: 0,
                       right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(color: Color(0xFF6B8E23), shape: BoxShape.circle),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                      child: GestureDetector(
+                        onTap: () => _showPickerOptions(authBox, currentUser!, userData),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(color: Color(0xFF6B8E23), shape: BoxShape.circle),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 22),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-
-              // --- Identitas dari Database ---
+              
               Text(namaUser, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
               Text(emailUser, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-              const SizedBox(height: 30),
+              
+              const SizedBox(height: 35), // Jarak disesuaikan setelah Score dihapus
 
-              // --- Statistik dari Google Cloud ---
-              _buildCloudStats(),
-              const SizedBox(height: 35),
-
-              // --- Menu Detail & Edit ---
+              // --- Menu ---
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
                 child: Column(
@@ -90,9 +135,16 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 15),
                     _buildMenuTile(
+                      icon: Icons.lock_reset_rounded,
+                      title: "Ubah Kata Sandi",
+                      subtitle: "Ganti password akun kamu",
+                      onTap: () => _showChangePasswordDialog(authBox, currentUser!, userData, dbService),
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuTile(
                       icon: Icons.logout_rounded,
                       title: "Keluar Aplikasi",
-                      subtitle: "Sesi: $namaUser",
+                      subtitle: "Sesi aktif: $namaUser",
                       isLogout: true,
                       onTap: () => _showLogoutDialog(loginController),
                     ),
@@ -106,39 +158,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Fungsi ambil data dari GCP
-  Widget _buildCloudStats() {
-    return FutureBuilder<List<dynamic>>(
-      future: ApiService.fetchData(),
-      builder: (context, snapshot) {
-        int totalLangkah = 0;
-        if (snapshot.hasData) {
-          for (var item in snapshot.data!) {
-            totalLangkah += (item['langkah'] as int? ?? 0);
-          }
-        }
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _statBox("Poin Eco", "${(totalLangkah / 10).floor()}"),
-            const SizedBox(width: 50),
-            _statBox("Total Langkah", "$totalLangkah"),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _statBox(String label, String value) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF6B8E23))),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-      ],
-    );
-  }
-
-  Widget _buildMenuTile({required IconData icon, required String title, required String subtitle, required VoidCallback onTap, bool isLogout = false}) {
+  Widget _buildMenuTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isLogout = false,
+  }) {
     return ListTile(
       onTap: onTap,
       tileColor: Colors.white,
@@ -150,42 +176,167 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- DIALOG EDIT PROFIL (UPDATE AUTH_BOX) ---
   void _showEditDialog(Box authBox, String usernameKey, dynamic oldData) {
     final nameCtrl = TextEditingController(text: oldData['username']);
     final emailCtrl = TextEditingController(text: oldData['email']);
 
-    Get.defaultDialog(
-      title: "Edit Detail",
-      content: Column(
-        children: [
-          TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "Username")),
-          TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: "Email")),
-        ],
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        child: Padding(
+          padding: const EdgeInsets.all(25),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Edit Profil ✨", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E4D2E))),
+              const SizedBox(height: 25),
+              _buildTextField(controller: nameCtrl, label: "Username", icon: Icons.person_outline),
+              const SizedBox(height: 15),
+              _buildTextField(controller: emailCtrl, label: "Email", icon: Icons.mail_outline),
+              const SizedBox(height: 25),
+              _buildActionButtons(
+                onConfirm: () {
+                  var newData = Map<String, dynamic>.from(oldData);
+                  newData['username'] = nameCtrl.text;
+                  newData['email'] = emailCtrl.text;
+                  authBox.put('user_$usernameKey', newData);
+                  setState(() {});
+                  Get.back();
+                  Get.snackbar("Sukses", "Profil berhasil diperbarui! ✨");
+                },
+              ),
+            ],
+          ),
+        ),
       ),
-      textConfirm: "Simpan",
-      onConfirm: () {
-        // Update map data di auth_box
-        var newData = Map<String, dynamic>.from(oldData);
-        newData['username'] = nameCtrl.text;
-        newData['email'] = emailCtrl.text;
-        
-        authBox.put('user_$usernameKey', newData);
-        
-        setState(() {}); // Refresh UI layar profil
-        Get.back();
-        Get.snackbar("Berhasil", "Data di database terupdate! ✅");
-      },
+    );
+  }
+
+  void _showChangePasswordDialog(Box authBox, String usernameKey, dynamic oldData, DatabaseService dbService) {
+    final oldPassCtrl = TextEditingController();
+    final newPassCtrl = TextEditingController();
+    final confirmPassCtrl = TextEditingController();
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(25),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Ubah Kata Sandi 🔐", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E4D2E))),
+                const SizedBox(height: 25),
+                _buildTextField(controller: oldPassCtrl, label: "Kata Sandi Lama", icon: Icons.lock_open_rounded, isPassword: true),
+                const SizedBox(height: 15),
+                _buildTextField(controller: newPassCtrl, label: "Kata Sandi Baru", icon: Icons.lock_outline, isPassword: true),
+                const SizedBox(height: 15),
+                _buildTextField(controller: confirmPassCtrl, label: "Konfirmasi Sandi Baru", icon: Icons.lock_reset, isPassword: true),
+                const SizedBox(height: 25),
+                _buildActionButtons(
+                  onConfirm: () {
+                    String oldPassHashed = dbService.hashPassword(oldPassCtrl.text);
+                    if (oldPassHashed != oldData['password']) {
+                      Get.snackbar("Error", "Kata sandi lama salah! ❌", backgroundColor: Colors.white);
+                      return;
+                    }
+
+                    if (newPassCtrl.text.isEmpty) {
+                      Get.snackbar("Error", "Sandi baru tidak boleh kosong!");
+                      return;
+                    }
+
+                    if (newPassCtrl.text == confirmPassCtrl.text) {
+                      var newData = Map<String, dynamic>.from(oldData);
+                      newData['password'] = dbService.hashPassword(newPassCtrl.text);
+                      authBox.put('user_$usernameKey', newData);
+                      Get.back();
+                      Get.snackbar("Sukses", "Kata sandi berhasil diperbarui! 🔐");
+                    } else {
+                      Get.snackbar("Error", "Sandi baru dan konfirmasi tidak cocok!", backgroundColor: Colors.white);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({required TextEditingController controller, required String label, required IconData icon, bool isPassword = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: const Color(0xFFF1F5F1),
+        prefixIcon: Icon(icon, color: const Color(0xFF6B8E23)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons({required VoidCallback onConfirm}) {
+    return Row(
+      children: [
+        Expanded(child: TextButton(onPressed: () => Get.back(), child: const Text("Batal", style: TextStyle(color: Colors.grey)))),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B8E23),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            onPressed: onConfirm,
+            child: const Text("Simpan", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ],
     );
   }
 
   void _showLogoutDialog(LoginController controller) {
-    Get.defaultDialog(
-      title: "Logout",
-      middleText: "Yakin ingin keluar?",
-      textConfirm: "Ya",
-      buttonColor: Colors.redAccent,
-      onConfirm: () => controller.logout(),
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        child: Padding(
+          padding: const EdgeInsets.all(25),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Logout", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2E4D2E))),
+              const SizedBox(height: 15),
+              const Text("Yakin ingin keluar?", style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 25),
+              _buildActionButtonsLogout(onConfirm: () => controller.logout()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtonsLogout({required VoidCallback onConfirm}) {
+    return Row(
+      children: [
+        Expanded(child: TextButton(onPressed: () => Get.back(), child: const Text("Tidak", style: TextStyle(color: Colors.grey)))),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+            onPressed: onConfirm,
+            child: const Text("Ya", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ],
     );
   }
 }
