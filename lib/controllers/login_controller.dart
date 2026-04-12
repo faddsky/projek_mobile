@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
-import '../services/database_service.dart'; // Import service kamu
+import '../services/database_service.dart';
 
 class LoginController extends GetxController {
   final LocalAuthentication auth = LocalAuthentication();
@@ -31,6 +31,7 @@ class LoginController extends GetxController {
   }
 
   void register(String username, String email, String password) async {
+    // Validasi input kosong
     if (username.trim().isEmpty || email.trim().isEmpty || password.trim().isEmpty) {
       Get.snackbar("Error", "Semua field harus diisi", backgroundColor: Colors.orangeAccent);
       return;
@@ -38,21 +39,50 @@ class LoginController extends GetxController {
 
     isLoading.value = true;
     try {
-      // Gunakan nama box dari DatabaseService agar konsisten
       var box = Hive.box(DatabaseService.authBox);
       
-      await box.put('user_$username', {
-        'username': username,
-        'email': email,
+      // Bersihkan input dari spasi yang tidak sengaja
+      String cleanUsername = username.trim();
+      String cleanEmail = email.trim().toLowerCase();
+
+      // 1. Validasi Username (Case Sensitive berdasarkan Key)
+      if (box.containsKey('user_$cleanUsername')) {
+        Get.snackbar("Gagal", "Username '$cleanUsername' sudah terdaftar!", 
+            backgroundColor: Colors.redAccent, colorText: Colors.white);
+        isLoading.value = false;
+        return; // Berhenti di sini jika username ada
+      }
+
+      // 2. Validasi Email (Looping untuk cek value di dalam Map)
+      var allUsers = box.values.toList();
+      bool isEmailExist = allUsers.any((user) {
+        if (user is Map) {
+          return user['email'].toString().toLowerCase() == cleanEmail;
+        }
+        return false;
+      });
+
+      if (isEmailExist) {
+        Get.snackbar("Gagal", "Email '$cleanEmail' sudah digunakan!", 
+            backgroundColor: Colors.redAccent, colorText: Colors.white);
+        isLoading.value = false;
+        return; // Berhenti di sini jika email ada
+      }
+
+      // 3. Simpan jika semua validasi lolos
+      await box.put('user_$cleanUsername', {
+        'username': cleanUsername,
+        'email': cleanEmail,
         'password': hashPassword(password),
         'profilePic': selectedImagePath.value,
       });
 
-      Get.snackbar("Berhasil", "Akun $username berhasil dibuat!", 
+      Get.snackbar("Berhasil", "Akun $cleanUsername berhasil dibuat!", 
           backgroundColor: Colors.green, colorText: Colors.white);
       
       selectedImagePath.value = ''; 
       Future.delayed(const Duration(milliseconds: 1500), () => Get.back()); 
+      
     } catch (e) {
       Get.snackbar("Error", "Gagal mendaftar: $e");
     } finally {
@@ -70,10 +100,10 @@ class LoginController extends GetxController {
     isLoading.value = true;
     try {
       var box = Hive.box(DatabaseService.authBox);
-      var userData = box.get('user_$username');
+      var userData = box.get('user_${username.trim()}');
 
       if (userData != null && userData['password'] == hashPassword(password)) {
-        _createSession(username);
+        _createSession(username.trim());
         Get.offAllNamed('/home');
         Get.snackbar("Selamat Datang", "Halo $username!", backgroundColor: Colors.green, colorText: Colors.white);
       } else {
@@ -110,7 +140,6 @@ class LoginController extends GetxController {
   }
 
   void _createSession(String username) {
-    // Pastikan sessionBox sudah didaftarkan di DatabaseService
     var session = Hive.box(DatabaseService.sessionBox);
     session.put('isLoggedIn', true);
     session.put('currentUser', username);
@@ -121,6 +150,4 @@ class LoginController extends GetxController {
     session.put('isLoggedIn', false);
     Get.offAllNamed('/login');
   }
-
-  
 }
