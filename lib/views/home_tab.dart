@@ -3,12 +3,12 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:projek_mobile/services/api_service.dart';
 import 'package:projek_mobile/services/database_service.dart';
-import 'package:projek_mobile/services/air_service.dart'; // Import service LBS baru kamu
+import 'package:projek_mobile/services/air_service.dart'; 
 import '../controllers/dashboard_controller.dart';
 import 'scan_page.dart';
 import '../controllers/scan_controller.dart';
 import 'alarm_page.dart'; 
-import 'maps_page.dart'; 
+// MapsPage sudah dihapus dari sini
 import 'game_page.dart';
 import 'notification_page.dart';
 
@@ -62,7 +62,6 @@ class _HomeTabState extends State<HomeTab> {
           );
         }
 
-        // Ambil nilai AQI (1-5) dari API
         int aqi = snapshot.data!['list'][0]['main']['aqi'];
         
         List<String> status = ["", "Sangat Sehat 🌱", "Cukup Baik 👍", "Sedikit Polusi 😐", "Udara Buruk 😷", "Bahaya! ⚠️"];
@@ -123,7 +122,6 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    // Controller tetap dipasang jika game masih butuh Accelerometer
     final controller = Get.put(DashboardController());
     final dbService = Get.find<DatabaseService>();
 
@@ -141,7 +139,6 @@ class _HomeTabState extends State<HomeTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Dinamis (Salam & Nama)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -210,12 +207,10 @@ class _HomeTabState extends State<HomeTab> {
               ),
               const SizedBox(height: 30),
 
-              // FITUR BARU: Air Quality LBS (Gantiin Pedometer)
               _buildAirCard(),
 
               const SizedBox(height: 30),
 
-              // Bagian Tool Cards
               const Text(
                 "Eco AI Tools",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -256,13 +251,17 @@ class _HomeTabState extends State<HomeTab> {
 
               Row(
                 children: [
+                  // Karena MapsPage dihapus, tombol Eco-Game kita buat Full Width 
+                  // atau tetap setengah tapi tombol Maps-nya diganti Info Eco
                   Expanded(
                     child: _buildToolCard(
-                      "TPS Terdekat",
-                      Icons.map_rounded,
+                      "Info Lingkungan",
+                      Icons.info_outline_rounded,
                       Colors.green[50]!,
                       Colors.green,
-                      () => Get.to(() => const MapsPage()),
+                      () {
+                        Get.snackbar("Eco Info", "Yuk, jaga bumi dengan tidak membuang sampah sembarangan!");
+                      },
                     ),
                   ),
                   const SizedBox(width: 15),
@@ -280,7 +279,6 @@ class _HomeTabState extends State<HomeTab> {
 
               const SizedBox(height: 35),
 
-              // RIWAYAT DARI CLOUD
               const Text(
                 "Riwayat Cloud Terbaru",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -338,7 +336,7 @@ class _HomeTabState extends State<HomeTab> {
           children: [
             Icon(icon, size: 40, color: iconColor),
             const SizedBox(height: 10),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), textAlign: TextAlign.center),
           ],
         ),
       ),

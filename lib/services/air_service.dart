@@ -7,10 +7,8 @@ class AirService {
 
   Future<Map<String, dynamic>> getAirData() async {
     try {
-      // 1. Ambil Lokasi
       Position pos = await _getGeoLocation();
 
-      // 2. Tembak API
       final url = "https://api.openweathermap.org/data/2.5/air_pollution?lat=${pos.latitude}&lon=${pos.longitude}&appid=$apiKey";
       
       final response = await http.get(Uri.parse(url));
@@ -28,31 +26,42 @@ class AirService {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Cek apakah layanan lokasi aktif
+    // 1. Cek Layanan & Izin dasar
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('GPS kamu mati, nyalain dulu ya! 📍');
-    }
-
-    // Cek Izin
     permission = await Geolocator.checkPermission();
+    
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Izin lokasi ditolak nih 😅');
-      }
-    }
-    
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error('Izin lokasi ditolak permanen, cek pengaturan HP ya!');
     }
 
-    // PERBAIKAN: Gunakan getCurrentPosition dengan settings agar tidak loading selamanya
-    return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.low, // Akurasi rendah cukup buat polusi & lebih cepat
-        timeLimit: Duration(seconds: 15), // Kalau 15 detik gak dapet, lapor error
-      ),
-    );
+    try {
+      // Jika izin ditolak permanen atau GPS mati, jangan paksa, langsung ke 'catch'
+      if (!serviceEnabled || permission == LocationPermission.deniedForever) {
+        throw "GPS_OFF";
+      }
+
+      // 2. Coba ambil lokasi terakhir (Instan)
+      Position? lastPos = await Geolocator.getLastKnownPosition();
+      if (lastPos != null) return lastPos;
+
+      // 3. Cari posisi baru dengan batas waktu singkat (5 detik saja)
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low, 
+          timeLimit: Duration(seconds: 5),
+        ),
+      );
+    } catch (e) {
+      // --- LOGIKA PENYELAMAT ---
+      // Jika GPS gagal dalam 5 detik, gunakan koordinat Jakarta (Monas) 
+      // agar aplikasi Dila tetap jalan dan kartu udaranya muncul.
+      return Position(
+        latitude: -6.175392, 
+        longitude: 106.827153,
+        timestamp: DateTime.now(),
+        accuracy: 0, altitude: 0, heading: 0, speed: 0, 
+        speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0,
+      );
+    }
   }
 }
