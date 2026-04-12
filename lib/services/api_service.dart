@@ -1,60 +1,54 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:io';
 
 class ApiService {
   static Future<Map<String, dynamic>> getWorldTime(String timezone) async {
-    // Kita pakai WorldTimeAPI karena lebih stabil untuk region kita
-    // URL di .env pastikan: http://worldtimeapi.org/api
-    final String baseUrl =
-        dotenv.env['TIME_API_URL'] ?? 'http://worldtimeapi.org/api';
+    // Pakai TimeAPI.io karena lebih stabil untuk request via HP
+    final String url = "https://timeapi.io/api/Time/current/zone?timeZone=$timezone";
+    
+    final client = HttpClient();
+    // Tambahkan timeout di sisi client
+    client.connectionTimeout = const Duration(seconds: 10);
 
     try {
-      // Endpoint WorldTimeAPI itu: /timezone/{zone}
-      final response = await http
-          .get(
-            Uri.parse("$baseUrl/timezone/$timezone"),
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'EcoStepApp/1.0',
-            },
-          )
-          .timeout(const Duration(seconds: 15));
+      // Kita buat request manual untuk kontrol header yang lebih dalam
+      final request = await client.getUrl(Uri.parse(url));
+      
+      // Tambahkan headers standar browser mobile
+      request.headers.set('Accept', 'application/json');
+      request.headers.set('User-Agent', 'Mozilla/5.0 (Android 10; Mobile; rv:115.0) Gecko/115.0 Firefox/115.0');
+      request.headers.set('Connection', 'keep-alive');
+
+      final response = await request.close();
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final responseBody = await response.transform(utf8.decoder).join();
+        final data = json.decode(responseBody);
 
-        // Karena format WorldTimeAPI beda, kita bungkus lagi biar sama
-        // dengan variabel yang ada di Page kamu (remoteTime & remoteDate)
-        DateTime parseTime = DateTime.parse(data['datetime']);
+        // TimeAPI.io menggunakan field 'dateTime'
+        DateTime parseTime = DateTime.parse(data['dateTime']);
+
+        List<String> days = [
+          "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu",
+        ];
+        
+        // DateTime.weekday: 1 (Senin) - 7 (Minggu)
+        String dayName = days[parseTime.weekday % 7];
 
         return {
-          'time':
-              "${parseTime.hour.toString().padLeft(2, '0')}:${parseTime.minute.toString().padLeft(2, '0')}",
-          'date':
-              "${data['day_of_week']}, ${parseTime.day}-${parseTime.month}-${parseTime.year}",
-          'dayOfWeek': _getDayName(data['day_of_week']),
+          'time': "${parseTime.hour.toString().padLeft(2, '0')}:${parseTime.minute.toString().padLeft(2, '0')}",
+          'date': "$dayName, ${parseTime.day}-${parseTime.month}-${parseTime.year}",
+          'dayOfWeek': dayName,
         };
       } else {
         throw Exception('Server Error: ${response.statusCode}');
       }
     } catch (e) {
-      print("Error Detail: $e");
-      rethrow;
+      print("Eror Full API: $e");
+      // Kita rethrow supaya ConversionPage tahu kalau ini eror dan bisa nampilin pesan eror di UI
+      rethrow; 
+    } finally {
+      client.close(); // Tutup client untuk hemat memori
     }
-  }
-
-  // Helper untuk ubah angka hari jadi nama hari
-  static String _getDayName(int day) {
-    const days = [
-      "Minggu",
-      "Senin",
-      "Selasa",
-      "Rabu",
-      "Kamis",
-      "Jumat",
-      "Sabtu",
-    ];
-    return days[day % 7];
   }
 }

@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Import package dotenv
 
 class AirService {
-  // API Key baru yang kamu berikan
-  final String apiKey = "2e0df5be3350f199d6e79e1e9cbb63ae"; 
+  // Mengambil API Key dari file .env
+  final String apiKey = dotenv.env['OPENWEATHER_API_KEY'] ?? ""; 
 
   Future<Map<String, dynamic>> getAirData() async {
     try {
@@ -19,7 +20,7 @@ class AirService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else if (response.statusCode == 401) {
-        throw "API Key belum aktif, tunggu sekitar 2 jam ya!";
+        throw "API Key belum aktif atau salah, tunggu sekitar 2 jam ya!";
       } else {
         throw "Gagal mengambil data udara (Status: ${response.statusCode})";
       }
@@ -28,7 +29,7 @@ class AirService {
     }
   }
 
-  // --- FUNGSI BARU: Mendapatkan Nama Kota ---
+  // --- FUNGSI: Mendapatkan Nama Kota ---
   Future<String> getLocationName(double lat, double lon) async {
     try {
       // Menggunakan API Geocoding bawaan OpenWeather
@@ -48,6 +49,7 @@ class AirService {
     }
   }
 
+  // --- FUNGSI: Logika Geolocation ---
   Future<Position> _getGeoLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -81,13 +83,19 @@ class AirService {
     }
   }
 
+  // --- FUNGSI: Default Lokasi (Jakarta) ---
   Position _getDefaultLocation() {
     return Position(
       latitude: -6.175392, 
       longitude: 106.827153,
       timestamp: DateTime.now(),
-      accuracy: 0, altitude: 0, heading: 0, speed: 0, 
-      speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0,
+      accuracy: 0, 
+      altitude: 0, 
+      altitudeAccuracy: 0,
+      heading: 0, 
+      headingAccuracy: 0,
+      speed: 0, 
+      speedAccuracy: 0,
     );
   }
 }
