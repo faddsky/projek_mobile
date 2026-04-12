@@ -8,9 +8,21 @@ import 'scan_page.dart';
 import 'alarm_page.dart'; 
 import 'game_page.dart';
 import 'notification_page.dart';
+// Import halaman untuk navigasi navbar
+import 'conversion_page.dart';
+import 'profile_page.dart';
+import 'feedback_page.dart';
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> {
+  // Variabel untuk melacak index halaman yang aktif
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -21,29 +33,64 @@ class HomeTab extends StatelessWidget {
     String username = Hive.box(DatabaseService.authBox)
         .get('user_${sessionBox.get('currentUser')}')?['username'] ?? 'User';
 
+    // Daftar halaman yang dihubungkan ke navbar
+    final List<Widget> _pages = [
+      _buildMainDashboard(controller, username, dbService), // Index 0: Tampilan Utama
+      const ConversionPage(),                               // Index 1: Konversi
+      const FeedbackPage(),                                 // Index 2: Saran
+      const ProfilePage(),                                  // Index 3: Profil
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF8),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(controller, username, dbService),
-              const SizedBox(height: 25),
-              
-              // Kartu Udara
-              Obx(() => _buildAirCard(controller)),
-              const SizedBox(height: 25),
+      // Menampilkan widget berdasarkan index yang dipilih
+      body: _pages[_currentIndex],
+      
+      // Bottom Navigation Bar yang dikembalikan fungsinya
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        selectedItemColor: const Color(0xFF6B8E23),
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        elevation: 10,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.currency_exchange), label: "Konversi"),
+          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: "Saran"),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profil"),
+        ],
+      ),
+    );
+  }
 
-              const Text("Eco AI Tools", 
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 15),
-              
-              // Grid Menu yang sudah diubah tata letaknya
-              _buildToolGrid(),
-            ],
-          ),
+  // Widget untuk isi konten utama Dashboard (sebelumnya ada di body Scaffold)
+  Widget _buildMainDashboard(HomeController controller, String name, DatabaseService db) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(controller, name, db),
+            const SizedBox(height: 25),
+            
+            // Kartu Udara
+            Obx(() => _buildAirCard(controller)),
+            const SizedBox(height: 25),
+
+            const Text("Eco AI Tools", 
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            
+            // Grid Menu
+            _buildToolGrid(),
+          ],
         ),
       ),
     );
@@ -55,7 +102,6 @@ class HomeTab extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // Gunakan Obx jika kamu sudah mengubah greeting menjadi RxString di controller
           Text(controller.getGreeting(), style: const TextStyle(fontSize: 16, color: Colors.grey)),
           Text("$name ✨", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.green[900])),
         ]),
@@ -79,6 +125,9 @@ class HomeTab extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: [colors[aqi].withOpacity(0.8), colors[aqi]]),
         borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(color: colors[aqi].withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))
+        ],
       ),
       child: Column(children: [
         const Text("Kualitas Udara Sekitarmu", style: TextStyle(color: Colors.white)),
@@ -115,10 +164,9 @@ class HomeTab extends StatelessWidget {
     ]),
   );
 
-  // --- Widget Menu Grid (Update Tata Letak) ---
+  // --- Widget Menu Grid ---
   Widget _buildToolGrid() => Column(
     children: [
-      // 1. Scan Sampah melebar penuh ke samping
       _buildToolCard(
         "Scan Sampah", 
         Icons.camera_enhance_rounded, 
@@ -128,8 +176,6 @@ class HomeTab extends StatelessWidget {
         isFullWidth: true
       ),
       const SizedBox(height: 15),
-      
-      // 2. Baris bawah: Jadwal Sampah dan Eco-Game berdampingan
       Row(
         children: [
           Expanded(
@@ -156,9 +202,9 @@ class HomeTab extends StatelessWidget {
     ],
   );
 
-  // Widget Card Helper dengan parameter opsional isFullWidth
   Widget _buildToolCard(String t, IconData i, Color b, Color ic, VoidCallback o, {bool isFullWidth = false}) => InkWell(
     onTap: o, 
+    borderRadius: BorderRadius.circular(25),
     child: Container(
       width: isFullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(20), 
