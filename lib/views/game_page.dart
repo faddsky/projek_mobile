@@ -58,7 +58,7 @@ class GamePage extends StatelessWidget {
             child: Obx(() => Row(
               children: List.generate(3, (i) => Icon(
                 Icons.bolt,
-                color: i < controller.bombCount.value ? Colors.orange : Colors.grey.withOpacity(0.5),
+                color: i < controller.bombCount.value ? Colors.orange : Colors.grey.withValues(alpha: 0.5),
                 size: 35,
               )),
             )),
@@ -89,7 +89,7 @@ class GamePage extends StatelessWidget {
 
           // Explosion Flash Overlay
           Obx(() => controller.isExploding.value 
-            ? Positioned.fill(child: Container(color: Colors.white.withOpacity(0.3))) 
+            ? Positioned.fill(child: Container(color: Colors.white.withValues(alpha: 0.3))) 
             : const SizedBox.shrink()),
             
           // Game Over Dialog Listener

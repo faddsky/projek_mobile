@@ -123,10 +123,10 @@ class _HomeTabState extends State<HomeTab> {
       width: double.infinity,
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [colors[aqi].withOpacity(0.8), colors[aqi]]),
+        gradient: LinearGradient(colors: [colors[aqi].withValues(alpha: 0.8), colors[aqi]]),
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
-          BoxShadow(color: colors[aqi].withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))
+          BoxShadow(color: colors[aqi].withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5))
         ],
       ),
       child: Column(children: [

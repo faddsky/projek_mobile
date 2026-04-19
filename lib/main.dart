@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // 1. Import ini
 import 'routes/app_pages.dart';
-import 'bindings/initial_binding.dart'; 
-import 'services/database_service.dart' ; 
+import 'bindings/initial_binding.dart';
+import 'services/database_service.dart';
 
 void main() async {
   // Menyiapkan plugin sistem sebelum aplikasi dijalankan
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 2. Load file .env agar API Key Gemini bisa dibaca
   try {
     await dotenv.load(fileName: ".env");
@@ -16,7 +16,7 @@ void main() async {
   } catch (e) {
     print("Error loading .env file: $e ❌");
   }
-  
+
   // Inisialisasi Database (termasuk Notifikasi di dalamnya)
   await Get.putAsync(() => DatabaseService().init());
 
@@ -34,11 +34,9 @@ class EcoStepApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         primarySwatch: Colors.green,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6B8E23),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6B8E23)),
       ),
-      
+
       // Menggunakan route yang sudah dipisah
       initialRoute: AppRoutes.INITIAL,
       getPages: AppRoutes.routes,

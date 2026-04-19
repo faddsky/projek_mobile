@@ -142,7 +142,7 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
       onTap: onTap,
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: primaryColor),
       ),
       title: Text(title, style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold)),

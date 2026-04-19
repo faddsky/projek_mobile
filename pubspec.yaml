@@ -40,7 +40,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/models/model_ecostep_v3_fixed.tflite
+    - assets/models/model_ecostep_final.tflite
     - assets/labels.txt
     - assets/images/
     - .env

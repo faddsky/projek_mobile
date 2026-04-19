@@ -1,17 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/login_controller.dart';
+import '../controllers/signup_controller.dart'; // Pastikan import ke controller baru
 
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mencari controller yang sudah di-inject
-    final controller = Get.find<LoginController>();
+    // Ganti Get.find menjadi Get.put karena kita menggunakan controller baru khusus SignUp
+    final controller = Get.put(SignUpController()); 
     
-    // Controller untuk menangkap input teks
     final userController = TextEditingController();
     final emailController = TextEditingController();
     final passController = TextEditingController();
@@ -109,25 +108,14 @@ class SignUpPage extends StatelessWidget {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   elevation: 2,
                 ),
-                // Tombol otomatis disable jika sedang loading
                 onPressed: controller.isLoading.value ? null : () {
-                  // Validasi sederhana di UI sebelum kirim ke controller
-                  if (userController.text.isEmpty || emailController.text.isEmpty || passController.text.isEmpty) {
-                    Get.snackbar(
-                      "Peringatan", 
-                      "Harap isi semua data terlebih dahulu",
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.orangeAccent,
-                      colorText: Colors.white,
-                      margin: const EdgeInsets.all(10),
-                    );
-                  } else {
-                    controller.register(
-                      userController.text.trim(), 
-                      emailController.text.trim(), 
-                      passController.text
-                    );
-                  }
+                  // Kirim data ke register() di SignUpController
+                  // Validasi email sudah ada di dalam fungsi register tersebut
+                  controller.register(
+                    userController.text, 
+                    emailController.text, 
+                    passController.text
+                  );
                 },
                 child: controller.isLoading.value 
                   ? const SizedBox(

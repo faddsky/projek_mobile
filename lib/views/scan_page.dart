@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/scan_controller.dart';
 
-class ScanPage extends GetView<ScanController> {
+class ScanPage extends StatelessWidget {
   const ScanPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(ScanController());
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           "Eco Scan",
@@ -29,11 +31,13 @@ class ScanPage extends GetView<ScanController> {
       ),
       body: Stack(
         children: [
-          Column(
-            children: [
-              Expanded(
-                child: Container(
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                // PREVIEW CONTAINER
+                Container(
                   width: double.infinity,
+                  height: 380,
                   margin: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.grey[900],
@@ -52,13 +56,27 @@ class ScanPage extends GetView<ScanController> {
                           children: [
                             Icon(
                               Icons.camera_enhance_rounded,
-                              size: 80,
+                              size: 70,
                               color: Colors.white24,
                             ),
-                            SizedBox(height: 15),
+                            SizedBox(height: 20),
                             Text(
-                              "Scan sampahmu di sini",
-                              style: TextStyle(color: Colors.white54),
+                              "Scan Sampahmu di Sini",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              "• Gunakan latar belakang polos\n• Scan sampah satu per satu\n• Pastikan cahaya cukup terang",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white60,
+                                fontSize: 13,
+                                height: 1.6,
+                              ),
                             ),
                           ],
                         );
@@ -71,81 +89,81 @@ class ScanPage extends GetView<ScanController> {
                     }),
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 30,
-                  horizontal: 30,
-                ),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Pilih Sumber Gambar",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+
+                // BUTTON SOURCE AREA
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 30,
+                    horizontal: 30,
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        "Pilih Sumber Gambar",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 25),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildActionButton(
-                          icon: Icons.photo_library_rounded,
-                          label: "Galeri",
-                          color: Colors.blue[50]!,
-                          iconColor: Colors.blue,
-                          onTap: () =>
-                              controller.pickImageFromSource(isCamera: false),
-                        ),
-                        _buildActionButton(
-                          icon: Icons.camera_alt_rounded,
-                          label: "Kamera",
-                          color: const Color(0xFFE8F5E9),
-                          iconColor: const Color(0xFF6B8E23),
-                          onTap: () =>
-                              controller.pickImageFromSource(isCamera: true),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 25),
-                    Obx(
-                      () => controller.selectedImagePath.value.isNotEmpty
-                          ? SizedBox(
-                              width: double.infinity,
-                              height: 55,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF6B8E23),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
+                      const SizedBox(height: 25),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildActionButton(
+                            icon: Icons.photo_library_rounded,
+                            label: "Galeri",
+                            color: Colors.blue[50]!,
+                            iconColor: Colors.blue,
+                            onTap: () =>
+                                controller.pickImageFromSource(isCamera: false),
+                          ),
+                          _buildActionButton(
+                            icon: Icons.camera_alt_rounded,
+                            label: "Kamera",
+                            color: const Color(0xFFE8F5E9),
+                            iconColor: const Color(0xFF6B8E23),
+                            onTap: () =>
+                                controller.pickImageFromSource(isCamera: true),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+                      Obx(
+                        () => controller.selectedImagePath.value.isNotEmpty
+                            ? SizedBox(
+                                width: double.infinity,
+                                height: 55,
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF6B8E23),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
                                   ),
-                                ),
-                                onPressed: () => _showResultSheet(context),
-                                icon: const Icon(
-                                  Icons.analytics_outlined,
-                                  color: Colors.white,
-                                ),
-                                label: const Text(
-                                  "Lihat Hasil Scan",
-                                  style: TextStyle(
+                                  onPressed: () =>
+                                      _showResultSheet(context, controller),
+                                  icon: const Icon(
+                                    Icons.analytics_outlined,
                                     color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  label: const Text(
+                                    "Lihat Hasil Scan",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                          : const SizedBox(height: 55),
-                    ),
-                  ],
+                              )
+                            : const SizedBox(height: 55),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+          // LOADING OVERLAY
           Obx(
             () => controller.isLoading.value
                 ? Container(
@@ -163,7 +181,7 @@ class ScanPage extends GetView<ScanController> {
     );
   }
 
-  void _showResultSheet(BuildContext context) {
+  void _showResultSheet(BuildContext context, ScanController controller) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(25),
@@ -183,12 +201,44 @@ class ScanPage extends GetView<ScanController> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // PESAN ALERT JIKA RAGU (THRESHOLD)
+            Obx(
+              () => controller.isLowConfidence.value
+                  ? Container(
+                      // PERBAIKAN DI SINI: Pakai EdgeInsets.only
+                      margin: const EdgeInsets.only(bottom: 15),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.orangeAccent),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.orange),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "Sepertinya ini ${controller.resultLabel.value.toLowerCase()}, namun coba foto lebih jelas atau di latar polos untuk hasil lebih akurat.",
+                              style: TextStyle(
+                                color: Colors.orange[900],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox(),
+            ),
+
             Obx(
               () => Text(
                 controller.resultLabel.value,
                 style: const TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.bold,
                   color: Color(0xFF6B8E23),
                 ),
               ),
@@ -201,7 +251,7 @@ class ScanPage extends GetView<ScanController> {
             ),
             const SizedBox(height: 20),
 
-            // --- UI BOX GEMINI ---
+            // ECO-FACT BOX
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -231,7 +281,10 @@ class ScanPage extends GetView<ScanController> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF6B8E23),
+                            ),
                           )
                         : Text(
                             controller.funFact.value,
@@ -245,7 +298,6 @@ class ScanPage extends GetView<ScanController> {
                 ],
               ),
             ),
-
             const SizedBox(height: 25),
             SizedBox(
               width: double.infinity,
@@ -268,7 +320,6 @@ class ScanPage extends GetView<ScanController> {
         ),
       ),
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
     );
   }
 
