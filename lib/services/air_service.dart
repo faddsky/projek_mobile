@@ -49,7 +49,7 @@ class AirService {
     }
   }
 
-  // --- FUNGSI: Logika Geolocation ---
+  // --- FUNGSI: Logika Geolocation (BAGIAN YANG DIPERBAIKI) ---
   Future<Position> _getGeoLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -69,13 +69,12 @@ class AirService {
         return _getDefaultLocation();
       }
 
-      Position? lastPos = await Geolocator.getLastKnownPosition();
-      if (lastPos != null) return lastPos;
-
+      // PERBAIKAN: Menghapus pengambilan lokasi terakhir (cache) agar data lebih segar
+      // dan meningkatkan akurasi ke 'high' agar lokasi lebih tepat.
       return await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.low, 
-          timeLimit: Duration(seconds: 5),
+          accuracy: LocationAccuracy.high, // Akurasi ditingkatkan ke tinggi
+          timeLimit: Duration(seconds: 10), // Menambah waktu tunggu agar GPS bisa mengunci posisi
         ),
       );
     } catch (e) {

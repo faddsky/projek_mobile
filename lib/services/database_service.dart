@@ -9,6 +9,9 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:intl/intl.dart';
 
 class DatabaseService extends GetxService {
+  // Variabel reaktif untuk memantau jumlah notifikasi belum dibaca
+  var unreadCount = 0.obs;
+
   static const String authBox = 'auth_box';
   static const String profileBox = 'profile_box';
   static const String historyBox = 'history_box';
@@ -28,7 +31,10 @@ class DatabaseService extends GetxService {
     await Hive.openBox(sessionBox);
     await Hive.openBox(notificationBox);
 
-    // 1. Inisialisasi Zona Waktu
+    // Inisialisasi angka unreadCount saat aplikasi dibuka
+    updateUnreadCount();
+
+    // Inisialisasi Zona Waktu
     tz_data.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
 
@@ -51,10 +57,16 @@ class DatabaseService extends GetxService {
         ?.requestNotificationsPermission();
   }
 
+  // --- FUNGSI UPDATE ANGKA REAKTIF ---
+  void updateUnreadCount() {
+    var logs = getAllNotifications();
+    unreadCount.value = logs.where((item) => item['isRead'] == false).length;
+  }
+
   // --- FITUR: RIWAYAT NOTIFIKASI ---
   void saveNotification(String title, String body) {
     var box = Hive.box(notificationBox);
-    List<dynamic> logs = box.get('logs', defaultValue: []);
+    List<dynamic> logs = List.from(box.get('logs', defaultValue: []));
     logs.insert(0, {
       'title': title,
       'body': body,
@@ -62,6 +74,9 @@ class DatabaseService extends GetxService {
       'isRead': false,
     });
     box.put('logs', logs);
+    
+    // Update angka setiap ada notifikasi baru
+    updateUnreadCount();
   }
 
   List<dynamic> getAllNotifications() {
@@ -74,14 +89,22 @@ class DatabaseService extends GetxService {
     return logs.where((item) => item['isRead'] == false).length;
   }
 
-  // --- TANDAI SEMUA SUDAH DIBACA ---
+  // --- TANDAI SEMUA SUDAH DIBACA (FIX ERROR TYPE) ---
   void markAllAsRead() {
     var box = Hive.box(notificationBox);
-    List<dynamic> logs = box.get('logs', defaultValue: []);
-    for (var item in logs) {
-      item['isRead'] = true;
+    List<dynamic> logs = List.from(box.get('logs', defaultValue: []));
+    
+    for (var i = 0; i < logs.length; i++) {
+      // Perbaikan: Konversi ke Map agar tidak error 'Object'
+      var notification = Map.from(logs[i] as Map);
+      notification['isRead'] = true;
+      logs[i] = notification;
     }
+    
     box.put('logs', logs);
+    
+    // UI langsung merespon menjadi nol
+    unreadCount.value = 0;
   }
 
   // --- FITUR: GREEN TIPS HARIAN ---
@@ -160,8 +183,8 @@ class DatabaseService extends GetxService {
   Future<void> triggerAlarm(String time, String label) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'eco_step_alarm',
-      'Alarm Sampah',
+      'eco_step_general', 
+      'Notifikasi Umum',   
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
@@ -171,18 +194,23 @@ class DatabaseService extends GetxService {
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
+    // Judul cerdas: membedakan tips dan alarm sampah
+    String notificationTitle = label.contains("✨") || label.contains("🌱") 
+        ? "Tips Ramah Lingkungan 🍃" 
+        : "Waktunya Buang Sampah! 🚛";
+
     await _notificationsPlugin.show(
       DateTime.now().millisecond,
-      "Waktunya Buang Sampah! 🚛",
-      "Jadwal: $label ($time)",
+      notificationTitle,
+      label,
       platformChannelSpecifics,
     );
 
     Get.snackbar(
-      "ALARM AKTIF!",
-      "Saatnya: $label",
+      notificationTitle.toUpperCase(),
+      label,
       backgroundColor: Colors.white,
-      icon: const Icon(Icons.alarm_on, color: Color(0xFF6B8E23)),
+      icon: const Icon(Icons.eco, color: Color(0xFF6B8E23)),
       duration: const Duration(seconds: 5),
     );
   }
@@ -235,26 +263,34 @@ class DatabaseService extends GetxService {
     }
   }
 
-  // --- FUNGSI ASLI USER ---
   String hashPassword(String password) {
     var bytes = utf8.encode(password); 
     return sha256.convert(bytes).toString();
   }
 
+  // --- FITUR: HITUNGAN SCAN PER USER ---
   void saveScanResult(String label, double confidence, String funFact) {
     var box = Hive.box(historyBox);
+    var session = Hive.box(sessionBox);
+    
+    String currentUser = session.get('currentUser') ?? 'guest';
+
     box.add({
+      'user': currentUser, 
       'label': label,
       'confidence': confidence,
       'funFact': funFact,
       'dateTime': DateTime.now().toString(),
     });
-    if (box.length % 5 == 0) {
-      saveNotification("Hebat!", "Kamu sudah melakukan scan sebanyak ${box.length} kali! 🌱");
+
+    // Hitungan scan dipisah per user agar tidak digabung
+    int userScanCount = box.values.where((item) => item['user'] == currentUser).length;
+
+    if (userScanCount % 5 == 0) {
+      saveNotification("Hebat!", "Kamu sudah melakukan scan sebanyak $userScanCount kali! 🌱");
     }
   }
 
-  // --- FUNGSI POIN GAME (BARU) ---
   int getTotalPoints() {
     return Hive.box(profileBox).get('total_points', defaultValue: 0);
   }

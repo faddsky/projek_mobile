@@ -8,10 +8,13 @@ class NotificationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Memanggil DatabaseService yang sudah di-inject oleh GetX
     final dbService = Get.find<DatabaseService>();
-    
-    // Mengambil semua riwayat notifikasi dari Hive
+
+    // TAMBAHKAN INI: Tandai semua dibaca saat halaman dibuka
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      dbService.markAllAsRead();
+    });
+
     final List<dynamic> notifications = dbService.getAllNotifications();
 
     return Scaffold(

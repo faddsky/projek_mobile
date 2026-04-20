@@ -8,7 +8,6 @@ import 'scan_page.dart';
 import 'alarm_page.dart'; 
 import 'game_page.dart';
 import 'notification_page.dart';
-// Import halaman untuk navigasi navbar
 import 'conversion_page.dart';
 import 'profile_page.dart';
 import 'feedback_page.dart';
@@ -21,7 +20,6 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  // Variabel untuk melacak index halaman yang aktif
   int _currentIndex = 0;
 
   @override
@@ -33,20 +31,16 @@ class _HomeTabState extends State<HomeTab> {
     String username = Hive.box(DatabaseService.authBox)
         .get('user_${sessionBox.get('currentUser')}')?['username'] ?? 'User';
 
-    // Daftar halaman yang dihubungkan ke navbar
     final List<Widget> _pages = [
-      _buildMainDashboard(controller, username, dbService), // Index 0: Tampilan Utama
-      const ConversionPage(),                               // Index 1: Konversi
-      const FeedbackPage(),                                 // Index 2: Saran
-      const ProfilePage(),                                  // Index 3: Profil
+      _buildMainDashboard(controller, username, dbService),
+      const ConversionPage(),
+      const FeedbackPage(),
+      const ProfilePage(),
     ];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF8),
-      // Menampilkan widget berdasarkan index yang dipilih
       body: _pages[_currentIndex],
-      
-      // Bottom Navigation Bar yang dikembalikan fungsinya
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -69,7 +63,6 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  // Widget untuk isi konten utama Dashboard (sebelumnya ada di body Scaffold)
   Widget _buildMainDashboard(HomeController controller, String name, DatabaseService db) {
     return SafeArea(
       child: SingleChildScrollView(
@@ -79,16 +72,11 @@ class _HomeTabState extends State<HomeTab> {
           children: [
             _buildHeader(controller, name, db),
             const SizedBox(height: 25),
-            
-            // Kartu Udara
             Obx(() => _buildAirCard(controller)),
             const SizedBox(height: 25),
-
             const Text("Eco AI Tools", 
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 15),
-            
-            // Grid Menu
             _buildToolGrid(),
           ],
         ),
@@ -96,7 +84,6 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  // --- Widget Header ---
   Widget _buildHeader(HomeController controller, String name, DatabaseService db) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -105,12 +92,11 @@ class _HomeTabState extends State<HomeTab> {
           Text(controller.getGreeting(), style: const TextStyle(fontSize: 16, color: Colors.grey)),
           Text("$name ✨", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.green[900])),
         ]),
-        _buildNotificationBadge(db),
+        _buildNotificationBadge(db), // Memastikan db dilewatkan ke sini
       ],
     );
   }
 
-  // --- Widget Kualitas Udara ---
   Widget _buildAirCard(HomeController controller) {
     if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
     if (controller.hasError.value) return _buildErrorState();
@@ -147,24 +133,36 @@ class _HomeTabState extends State<HomeTab> {
     child: const Text("Gagal memuat data udara 📍", textAlign: TextAlign.center)
   );
 
+  // --- PERBAIKAN DI SINI ---
   Widget _buildNotificationBadge(DatabaseService db) => GestureDetector(
-    onTap: () => Get.to(() => const NotificationPage()),
+    onTap: () {
+      db.markAllAsRead(); // Menandai semua dibaca
+      Get.to(() => const NotificationPage());
+    },
     child: Stack(clipBehavior: Clip.none, children: [
       const Icon(Icons.notifications_none_rounded, size: 32, color: Color(0xFF6B8E23)),
-      if (db.getUnreadCount() > 0) 
-        Positioned(
-          right: -2, 
-          top: -2, 
-          child: Container(
-            padding: const EdgeInsets.all(4), 
-            decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle), 
-            child: Text("${db.getUnreadCount()}", style: const TextStyle(color: Colors.white, fontSize: 10))
-          )
-        ),
+      Obx(() {
+        // Menggunakan variabel unreadCount yang reaktif dari DatabaseService
+        int count = db.unreadCount.value; 
+        if (count > 0) {
+          return Positioned(
+            right: -2, 
+            top: -2, 
+            child: Container(
+              padding: const EdgeInsets.all(4), 
+              decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle), 
+              child: Text(
+                "$count", 
+                style: const TextStyle(color: Colors.white, fontSize: 10)
+              )
+            )
+          );
+        }
+        return const SizedBox.shrink();
+      }),
     ]),
   );
 
-  // --- Widget Menu Grid ---
   Widget _buildToolGrid() => Column(
     children: [
       _buildToolCard(
