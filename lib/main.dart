@@ -12,9 +12,9 @@ void main() async {
   // 2. Load file .env agar API Key Gemini bisa dibaca
   try {
     await dotenv.load(fileName: ".env");
-    print("Environment variables loaded successfully! ✅");
+    debugPrint("Environment variables loaded successfully! ✅");
   } catch (e) {
-    print("Error loading .env file: $e ❌");
+    debugPrint("Error loading .env file: $e ❌");
   }
 
   // Inisialisasi Database (termasuk Notifikasi di dalamnya)
@@ -38,7 +38,7 @@ class EcoStepApp extends StatelessWidget {
       ),
 
       // Menggunakan route yang sudah dipisah
-      initialRoute: AppRoutes.INITIAL,
+      initialRoute: AppRoutes.initial,
       getPages: AppRoutes.routes,
       initialBinding: InitialBinding(),
     );

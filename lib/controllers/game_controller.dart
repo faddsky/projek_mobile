@@ -35,14 +35,14 @@ class GameController extends GetxController {
     double screenWidth = MediaQuery.of(context).size.width;
     double limit = (screenWidth / 2) - 50;
 
-    _accelSubscription = accelerometerEvents.listen((event) {
+    _accelSubscription = accelerometerEventStream().listen((event) {
       if (isGameOver.value || !isGameStarted.value || isExploding.value) return;
       double targetX = -event.x * 55;
       posX.value = (posX.value * 0.75) + (targetX * 0.25);
       posX.value = posX.value.clamp(-limit, limit);
     });
 
-    _gyroSubscription = gyroscopeEvents.listen((event) {
+    _gyroSubscription = gyroscopeEventStream().listen((event) {
       if (!isGameStarted.value || isGameOver.value || bombCount.value <= 0 || isExploding.value) return;
       // Logika Kocok
       if ((event.x.abs() + event.y.abs() + event.z.abs()) > 15) {

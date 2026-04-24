@@ -21,6 +21,9 @@ class _ProfilePageState extends State<ProfilePage> {
   final Color softGreen = const Color(0xFF8DAA91);
   final Color backgroundLight = const Color(0xFFF1F5F1);
 
+  // Variabel reaktif untuk checkbox biometrik di dialog logout
+  var hapusBiometrik = false.obs;
+
   // --- LOGIC: PICK IMAGE ---
   Future<void> _pickImage(
     ImageSource source,
@@ -191,7 +194,40 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- BOTTOM SHEET: PICKER ---
+  // --- DIALOG LOGOUT DENGAN CHECKBOX BIOMETRIK ---
+  void _showLogoutDialog(LoginController controller) {
+    // Reset checkbox setiap dialog dibuka
+    hapusBiometrik.value = false;
+
+    Get.defaultDialog(
+      title: "Logout",
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
+      content: Column(
+        children: [
+          const Text("Apakah Anda yakin ingin keluar?"),
+          const SizedBox(height: 15),
+          Obx(() => CheckboxListTile(
+            title: const Text("Hapus tautan biometrik di HP ini", style: TextStyle(fontSize: 13)),
+            value: hapusBiometrik.value,
+            onChanged: (val) => hapusBiometrik.value = val!,
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: primaryGreen,
+            dense: true,
+          )),
+        ],
+      ),
+      textConfirm: "Ya, Keluar",
+      textCancel: "Batal",
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.redAccent,
+      onConfirm: () {
+        Get.back(); // Tutup dialog
+        controller.logout(hapusBiometrik.value); // Jalankan logout dengan parameter boolean
+      },
+    );
+  }
+
+  // --- SISA FUNGSI DIALOG (PICKER, EDIT, CHANGE PASS) ---
   void _showPickerOptions(Box authBox, String currentUser, dynamic userData) {
     Get.bottomSheet(
       Container(
@@ -221,7 +257,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- DIALOG: EDIT PROFIL ---
   void _showEditDialog(Box authBox, String usernameKey, dynamic oldData) {
     final nameCtrl = TextEditingController(text: oldData['username']);
     final emailCtrl = TextEditingController(text: oldData['email']);
@@ -244,13 +279,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 onConfirm: () async {
                   String newName = nameCtrl.text.trim();
                   String newEmail = emailCtrl.text.trim();
-
                   if (newName.isEmpty || newEmail.isEmpty) return;
-
                   var newData = Map<String, dynamic>.from(oldData);
                   newData['username'] = newName;
                   newData['email'] = newEmail;
-
                   if (newName != usernameKey) {
                     await authBox.put('user_$newName', newData);
                     await authBox.delete('user_$usernameKey');
@@ -259,7 +291,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   } else {
                     await authBox.put('user_$usernameKey', newData);
                   }
-
                   setState(() {});
                   Get.back();
                   Get.snackbar("Sukses", "Profil diperbarui!");
@@ -272,7 +303,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- DIALOG: CHANGE PASSWORD ---
   void _showChangePasswordDialog(Box authBox, String usernameKey, dynamic oldData, DatabaseService dbService) {
     final oldPassCtrl = TextEditingController();
     final newPassCtrl = TextEditingController();
@@ -318,7 +348,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- REUSABLE COMPONENTS ---
   Widget _buildTextField({required TextEditingController controller, required String label, required IconData icon, bool isPassword = false}) {
     return TextField(
       controller: controller,
@@ -349,18 +378,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showLogoutDialog(LoginController controller) {
-    Get.defaultDialog(
-      title: "Logout",
-      middleText: "Yakin ingin keluar?",
-      textConfirm: "Ya",
-      textCancel: "Tidak",
-      confirmTextColor: Colors.white,
-      buttonColor: Colors.redAccent,
-      onConfirm: () => controller.logout(),
     );
   }
 }

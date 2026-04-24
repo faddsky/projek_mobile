@@ -16,18 +16,15 @@ class _AlarmPageState extends State<AlarmPage> {
   @override
   void initState() {
     super.initState();
-    // LOG: Sekarang pengecekan manual (Timer) dihapus karena sudah
-    // menggunakan ZonedSchedule di DatabaseService agar bunyi di background.
     debugPrint("🔔 Sistem Alarm Otomatis Aktif di Background...");
   }
 
   @override
   Widget build(BuildContext context) {
-    // Ambil data terbaru setiap build
     final List<dynamic> alarms = dbService.getAlarmsFromActivity();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAF8), // Sage muda banget
+      backgroundColor: const Color(0xFFF8FAF8),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -69,7 +66,6 @@ class _AlarmPageState extends State<AlarmPage> {
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(15),
                     onTap: () async {
-                      // Navigasi ke Edit
                       final result = await Get.to(() => AddAlarmPage(
                         existingData: Map<String, dynamic>.from(alarm),
                         index: index,
@@ -95,7 +91,10 @@ class _AlarmPageState extends State<AlarmPage> {
                       children: [
                         Switch(
                           value: isActive,
-                          activeColor: const Color(0xFF6B8E23),
+                          // --- PERBAIKAN DI SINI ---
+                          activeThumbColor: const Color(0xFF6B8E23),
+                          activeTrackColor: const Color(0xFF6B8E23).withAlpha(100),
+                          // -------------------------
                           onChanged: (val) {
                             setState(() {
                               dbService.updateAlarmStatus(index, val);
