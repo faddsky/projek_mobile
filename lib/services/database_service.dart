@@ -9,7 +9,6 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:intl/intl.dart';
 
 class DatabaseService extends GetxService {
-  // Variabel reaktif untuk memantau jumlah notifikasi belum dibaca
   var unreadCount = 0.obs;
 
   static const String authBox = 'auth_box';
@@ -31,10 +30,8 @@ class DatabaseService extends GetxService {
     await Hive.openBox(sessionBox);
     await Hive.openBox(notificationBox);
 
-    // Inisialisasi angka unreadCount saat aplikasi dibuka
     updateUnreadCount();
 
-    // Inisialisasi Zona Waktu
     tz_data.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
 
@@ -51,23 +48,26 @@ class DatabaseService extends GetxService {
     );
 
     await _notificationsPlugin.initialize(initializationSettings);
-
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
   }
 
-  // --- FUNGSI UPDATE ANGKA REAKTIF ---
+  // --- MANAJEMEN RIWAYAT NOTIFIKASI ---
   void updateUnreadCount() {
     var logs = getAllNotifications();
     unreadCount.value = logs.where((item) => item['isRead'] == false).length;
   }
 
-  // --- FITUR: RIWAYAT NOTIFIKASI ---
   void saveNotification(String title, String body) {
     var box = Hive.box(notificationBox);
+    var session = Hive.box(sessionBox);
+    
+    String currentUser = session.get('currentUser', defaultValue: 'guest');
+
     List<dynamic> logs = List.from(box.get('logs', defaultValue: []));
     logs.insert(0, {
+      'user': currentUser, 
       'title': title,
       'body': body,
       'time': DateTime.now().toString(),
@@ -75,55 +75,65 @@ class DatabaseService extends GetxService {
     });
     box.put('logs', logs);
     
-    // Update angka setiap ada notifikasi baru
     updateUnreadCount();
   }
 
   List<dynamic> getAllNotifications() {
-    return Hive.box(notificationBox).get('logs', defaultValue: []);
+    var box = Hive.box(notificationBox);
+    var session = Hive.box(sessionBox);
+    String currentUser = session.get('currentUser', defaultValue: 'guest');
+
+    List<dynamic> allLogs = box.get('logs', defaultValue: []);
+    return allLogs.where((item) => item['user'] == currentUser).toList();
   }
 
-  // --- HITUNG NOTIFIKASI BELUM DIBACA ---
   int getUnreadCount() {
     var logs = getAllNotifications();
     return logs.where((item) => item['isRead'] == false).length;
   }
 
-  // --- TANDAI SEMUA SUDAH DIBACA (FIX ERROR TYPE) ---
   void markAllAsRead() {
     var box = Hive.box(notificationBox);
-    List<dynamic> logs = List.from(box.get('logs', defaultValue: []));
+    var session = Hive.box(sessionBox);
+    String currentUser = session.get('currentUser', defaultValue: 'guest');
+
+    List<dynamic> allLogs = List.from(box.get('logs', defaultValue: []));
     
-    for (var i = 0; i < logs.length; i++) {
-      // Perbaikan: Konversi ke Map agar tidak error 'Object'
-      var notification = Map.from(logs[i] as Map);
-      notification['isRead'] = true;
-      logs[i] = notification;
+    for (var i = 0; i < allLogs.length; i++) {
+      var notification = Map.from(allLogs[i] as Map);
+      if (notification['user'] == currentUser) {
+        notification['isRead'] = true;
+        allLogs[i] = notification;
+      }
     }
     
-    box.put('logs', logs);
-    
-    // UI langsung merespon menjadi nol
+    box.put('logs', allLogs);
     unreadCount.value = 0;
   }
 
-  // --- FITUR: GREEN TIPS HARIAN ---
+  // --- GREEN TIPS HARIAN ---
   void checkAndSendGreenTip() {
     var box = Hive.box(notificationBox);
-    String lastSent = box.get('last_tip_date', defaultValue: "");
+    var session = Hive.box(sessionBox);
+    
+    String currentUser = session.get('currentUser', defaultValue: 'guest');
     String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    String userTipKey = 'tip_sent_${currentUser}_$today';
 
-    if (lastSent != today) {
+    bool hasReceivedTip = box.get(userTipKey, defaultValue: false);
+
+    if (!hasReceivedTip) {
       List<String> tips = [
-        "Mengurangi satu kantong plastik hari ini sangat berarti loh! ✨",
-        "Gunakan botol minum sendiri yuk untuk mengurangi sampah plastik! 🥤",
-        "Sampah organik bisa jadi kompos yang bermanfaat bagi tanamanmu. 🌱",
-        "Pilah sampahmu hari ini agar bumi tetap cantik! 🌸"
+        "Mengurangi satu kantong plastik hari ini sangat berarti loh! ✨ 🌱",
+        "Gunakan botol minum sendiri yuk untuk mengurangi sampah plastik! 🥤 🌱",
+        "Sampah organik bisa jadi kompos yang bermanfaat bagi tanamanmu. 🌱 ✨",
+        "Pilah sampahmu hari ini agar bumi tetap cantik! 🌸 🌱",
+        "Hemat energi yuk! Matikan lampu yang tidak terpakai. 💡 🌱"
       ];
       String tipHariIni = (tips..shuffle()).first;
+      
       triggerAlarm(DateFormat.jm().format(DateTime.now()), tipHariIni);
-      saveNotification("Green Tips Hari Ini", tipHariIni);
-      box.put('last_tip_date', today);
+      box.put(userTipKey, true);
     }
   }
 
@@ -160,31 +170,30 @@ class DatabaseService extends GetxService {
         tz.TZDateTime.from(scheduledDate, tz.local),
         const NotificationDetails(
           android: AndroidNotificationDetails(
-            'eco_step_alarm',
-            'Alarm Sampah',
+            'eco_step_alarm_high',
+            'Alarm Jadwal Sampah',
             importance: Importance.max,
             priority: Priority.high,
+            fullScreenIntent: true,
+            category: AndroidNotificationCategory.alarm,
             playSound: true,
             enableVibration: true,
-            fullScreenIntent: true,
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
-      saveNotification("Jadwal Diatur", "Alarm '${alarmData['label']}' disiapkan untuk jam ${alarmData['time']}");
-      debugPrint("⏰ Berhasil dijadwalkan: ${alarmData['label']} @ $scheduledDate");
     } catch (e) {
       debugPrint("❌ Gagal menjadwalkan alarm: $e");
     }
   }
 
-  // --- PEMICU ALARM MANUAL ---
+  // --- PEMICU ALARM & OTOMATIS SIMPAN RIWAYAT ---
   Future<void> triggerAlarm(String time, String label) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'eco_step_general', 
-      'Notifikasi Umum',   
+      'eco_step_alarm_high', 
+      'Alarm Jadwal Sampah',   
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
@@ -194,28 +203,29 @@ class DatabaseService extends GetxService {
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
-    // Judul cerdas: membedakan tips dan alarm sampah
-    String notificationTitle = label.contains("✨") || label.contains("🌱") 
-        ? "Tips Ramah Lingkungan 🍃" 
-        : "Waktunya Buang Sampah! 🚛";
+    bool isTip = label.contains("✨") || label.contains("🌱") || label.contains("🍃");
+    String title = isTip ? "Tips Ramah Lingkungan 🍃" : "Waktunya Buang Sampah! 🚛";
 
     await _notificationsPlugin.show(
       DateTime.now().millisecond,
-      notificationTitle,
+      title,
       label,
       platformChannelSpecifics,
     );
 
+    // Otomatis simpan ke riwayat saat alarm bunyi
+    saveNotification(title, label);
+
     Get.snackbar(
-      notificationTitle.toUpperCase(),
+      title.toUpperCase(),
       label,
       backgroundColor: Colors.white,
-      icon: const Icon(Icons.eco, color: Color(0xFF6B8E23)),
+      icon: Icon(isTip ? Icons.lightbulb_outline : Icons.eco, color: const Color(0xFF2E7D32)),
       duration: const Duration(seconds: 5),
     );
   }
 
-  // --- FUNGSI HIVE DASAR ---
+  // --- MANAJEMEN ALARM ---
   List<dynamic> getAlarmsFromActivity() {
     return Hive.box(activityBox).get('alarm_list', defaultValue: []);
   }
@@ -225,23 +235,34 @@ class DatabaseService extends GetxService {
     List<dynamic> currentAlarms = List.from(getAlarmsFromActivity());
     currentAlarms.add(alarmData);
     box.put('alarm_list', currentAlarms);
+
     _scheduleAlarmNotification(currentAlarms.length - 1, alarmData);
+    saveNotification("Jadwal Baru", "Jadwal '${alarmData['label']}' jam ${alarmData['time']} berhasil dibuat.");
   }
 
   void updateExistingAlarm(int index, Map<String, dynamic> newData) {
     var box = Hive.box(activityBox);
     List<dynamic> currentAlarms = List.from(getAlarmsFromActivity());
-    currentAlarms[index] = newData;
-    box.put('alarm_list', currentAlarms);
-    _scheduleAlarmNotification(index, newData);
+    
+    if (index >= 0 && index < currentAlarms.length) {
+      currentAlarms[index] = newData;
+      box.put('alarm_list', currentAlarms);
+
+      _scheduleAlarmNotification(index, newData);
+      saveNotification("Jadwal Diperbarui", "Jadwal '${newData['label']}' diubah ke jam ${newData['time']}.");
+    }
   }
 
   void deleteAlarmFromActivity(int index) {
     var box = Hive.box(activityBox);
     List<dynamic> currentAlarms = List.from(getAlarmsFromActivity());
+    String label = currentAlarms[index]['label'];
+    
     currentAlarms.removeAt(index);
     box.put('alarm_list', currentAlarms);
     _notificationsPlugin.cancel(index);
+
+    saveNotification("Jadwal Dihapus", "Jadwal '$label' telah dihapus.");
   }
 
   void updateAlarmStatus(int index, bool status) {
@@ -250,8 +271,12 @@ class DatabaseService extends GetxService {
     currentAlarms[index]['isActive'] = status;
     box.put('alarm_list', currentAlarms);
     _scheduleAlarmNotification(index, currentAlarms[index]);
+
+    String msg = status ? "diaktifkan" : "dimatikan";
+    saveNotification("Status Alarm", "Jadwal '${currentAlarms[index]['label']}' telah $msg.");
   }
 
+  // --- DEBUG & AUTH ---
   void debugCekSemuaBox() {
     List<String> semuaBox = [authBox, profileBox, historyBox, activityBox, sessionBox, notificationBox];
     debugPrint("========== MONITORING DATABASE ==========");
@@ -268,11 +293,10 @@ class DatabaseService extends GetxService {
     return sha256.convert(bytes).toString();
   }
 
-  // --- FITUR: HITUNGAN SCAN PER USER ---
+  // --- SCAN & POINTS ---
   void saveScanResult(String label, double confidence, String funFact) {
     var box = Hive.box(historyBox);
     var session = Hive.box(sessionBox);
-    
     String currentUser = session.get('currentUser') ?? 'guest';
 
     box.add({
@@ -283,11 +307,9 @@ class DatabaseService extends GetxService {
       'dateTime': DateTime.now().toString(),
     });
 
-    // Hitungan scan dipisah per user agar tidak digabung
     int userScanCount = box.values.where((item) => item['user'] == currentUser).length;
-
     if (userScanCount % 5 == 0) {
-      saveNotification("Hebat!", "Kamu sudah melakukan scan sebanyak $userScanCount kali! 🌱");
+      saveNotification("Pencapaian!", "Kamu sudah melakukan scan sebanyak $userScanCount kali! 🌱");
     }
   }
 
@@ -299,6 +321,5 @@ class DatabaseService extends GetxService {
     var box = Hive.box(profileBox);
     int currentPoints = getTotalPoints();
     box.put('total_points', currentPoints + newPoints);
-    debugPrint("🎉 Poin berhasil disimpan! Total sekarang: ${currentPoints + newPoints}");
   }
 }

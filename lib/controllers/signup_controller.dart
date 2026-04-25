@@ -35,7 +35,7 @@ class SignUpController extends GetxController {
       return;
     }
 
-    // 2. Validasi Format Email (Wajib ada @ dan domain)
+    // 2. Validasi Format Email
     if (!GetUtils.isEmail(email.trim())) {
       _showError("Format email tidak valid! Gunakan @gmail.com atau lainnya.");
       return;
@@ -77,18 +77,26 @@ class SignUpController extends GetxController {
         'profilePic': selectedImagePath.value,
       });
 
+      // --- BAGIAN NOTIFIKASI BERHASIL & REDIRECT ---
       Get.snackbar(
-        "Berhasil", 
+        "Pendaftaran Berhasil", 
         "Akun $cleanUsername berhasil dibuat!", 
-        backgroundColor: Colors.green, 
-        colorText: Colors.white
+        backgroundColor: const Color(0xFF2E7D32), // Hijau sesuai tema EcoStep
+        colorText: Colors.white,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+        margin: const EdgeInsets.all(15),
+        borderRadius: 15,
       );
       
       // Reset path gambar setelah sukses
       selectedImagePath.value = ''; 
       
-      // Tunggu sebentar lalu balik ke Login
-      Future.delayed(const Duration(milliseconds: 1500), () => Get.back()); 
+      // Tunggu 2 detik (sesuai durasi snackbar) lalu balik ke Login
+      Future.delayed(const Duration(seconds: 2), () {
+        Get.back(); // Kembali ke halaman Login
+      }); 
       
     } catch (e) {
       _showError("Gagal mendaftar: $e");
@@ -103,7 +111,9 @@ class SignUpController extends GetxController {
       message, 
       backgroundColor: Colors.orangeAccent,
       colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(15),
+      borderRadius: 15,
     );
   }
 }

@@ -12,19 +12,28 @@ class GamePage extends StatelessWidget {
 
     // Inisialisasi sensor dan tutorial
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Kita tetap butuh context di sini hanya untuk ambil lebar layar awal
       controller.initSensors(context);
       _showTutorialDialog(context, controller);
     });
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF4CAF50),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        // Teks Level diubah warnanya jadi hijau (Color 0xFF4CAF50 atau 0xFF1B5E20)
         title: Obx(
-          () => Text("EcoGame Level ${controller.difficultyLevel.value}"),
+          () => Text(
+            "EcoGame Level ${controller.difficultyLevel.value}",
+            style: const TextStyle(
+              color: Color(0xFF1B5E20), // Hijau tua yang serasi
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1B5E20), size: 20),
           onPressed: () => Get.back(),
         ),
       ),
@@ -35,7 +44,7 @@ class GamePage extends StatelessWidget {
             child: Image.asset('assets/images/back2.jpg', fit: BoxFit.fill),
           ),
 
-          // Stats (Score & Hearts)
+          // Stats (Score & Hearts) - Tetap Asli
           Positioned(
             top: 20,
             left: 20,
@@ -70,7 +79,7 @@ class GamePage extends StatelessWidget {
             ),
           ),
 
-          // Bomb Bolt Icons
+          // Bomb Bolt Icons - Tetap Asli
           Positioned(
             top: 55,
             left: 20,
@@ -95,7 +104,6 @@ class GamePage extends StatelessWidget {
             () => Stack(
               children: controller.fallingItems.map((item) {
                 return Positioned(
-                  // Menggunakan Get.width agar tidak perlu context berkali-kali
                   left: Get.width / 2 + item.x - 25,
                   top: item.y,
                   child: Image.asset(item.imagePath, width: 50, height: 50),
@@ -126,36 +134,42 @@ class GamePage extends StatelessWidget {
           Obx(
             () => controller.isExploding.value
                 ? Positioned.fill(
-                    child: Container(color: Colors.white.withAlpha(77)),
+                    child: Container(
+                      color: Colors.white.withAlpha(77),
+                      child: const Center(
+                        child: Text(
+                          "BOOM!",
+                          style: TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ),
+                    ),
                   )
                 : const SizedBox.shrink(),
           ),
-
-          // BAGIAN DIALOG GAME OVER SUDAH DIHAPUS DARI SINI
-          // Karena sudah dihandle otomatis oleh Controller.handleGameOver()
         ],
       ),
     );
   }
 
-  // Tutorial masih boleh pakai context karena muncul di awal (synchronous)
+  // Tutorial Dialog
   void _showTutorialDialog(BuildContext context, GameController controller) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          "EcoStep: Cara Bermain 🌿",
-          textAlign: TextAlign.center,
-        ),
+        title: const Text("EcoStep: Cara Bermain 🌿", textAlign: TextAlign.center),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("1. Miringkan HP untuk gerakkan Tong."),
             Text("2. Tangkap sampah plastik & kertas."),
-            Text("3. Hindari sampah organik (bikin nyawa kurang)."),
+            Text("3. Hindari sampah organik."),
             Text("4. Tangkap BOM petir."),
             Text("5. KOCOK HP untuk ledakkan sampah organik!"),
           ],
@@ -168,10 +182,7 @@ class GamePage extends StatelessWidget {
                 controller.startGame();
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              child: const Text(
-                "Mulai Main!",
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text("Mulai Main!", style: TextStyle(color: Colors.white)),
             ),
           ),
         ],

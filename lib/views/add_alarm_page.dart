@@ -18,12 +18,13 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
   List<String> selectedDays = [];
   bool isVibrate = true;
 
-  final Color primaryColor = const Color(0xFF6B8E23); // Sage Green
+  // Warna Konsisten Emerald
+  final Color primaryColor = const Color(0xFF2E7D32);
+  final Color scaffoldBg = const Color(0xFFF8FAF8);
 
   @override
   void initState() {
     super.initState();
-    // Logika Edit: Kalau ada data lama, tampilkan. Kalau gak ada, pakai default.
     if (widget.existingData != null) {
       labelController = TextEditingController(text: widget.existingData!['label'] ?? "");
       isVibrate = widget.existingData!['isVibrate'] ?? true;
@@ -33,7 +34,6 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
         selectedDays = daysStr.split(", ");
       }
 
-      // Parsing format jam string (08:30 PM) balik ke TimeOfDay agar UI sinkron
       try {
         final String timeStr = widget.existingData!['time'].toString();
         final parts = timeStr.split(" ");
@@ -52,130 +52,274 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
     }
   }
 
-  // Widget bantuan untuk angka jam aesthetic
-  Widget _timeTile(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        color: Colors.green[900],
-        fontSize: 80,
-        fontWeight: FontWeight.w300,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAF8),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.close, color: Colors.green[900]),
+          icon: Icon(Icons.close_rounded, color: Colors.green[900]),
           onPressed: () => Get.back(),
         ),
         title: Text(
-          widget.existingData != null ? "Edit Jadwal" : "Tambah Jadwal",
+          widget.existingData != null ? "Ubah Jadwal" : "Tambah Jadwal",
           style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.check, color: primaryColor, size: 28),
-            onPressed: () {
-              // Menyiapkan data untuk dikirim balik ke AlarmPage
-              final result = {
-                "time": selectedTime.format(context).toString(),
-                "days": selectedDays.isEmpty ? "Sekali" : selectedDays.join(", "),
-                "label": labelController.text.isEmpty ? "Buang Sampah" : labelController.text,
-                "isActive": true,
-                "isVibrate": isVibrate,
-              };
-
-              // PENTING: triggerAlarm DIHAPUS dari sini agar nunggu waktu yang pas
-              Get.back(result: result);
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: TextButton(
+              onPressed: () {
+                final result = {
+                  "time": selectedTime.format(context).toString(),
+                  "days": selectedDays.isEmpty ? "Sekali" : selectedDays.join(", "),
+                  "label": labelController.text.isEmpty ? "Buang Sampah" : labelController.text,
+                  "isActive": true,
+                  "isVibrate": isVibrate,
+                };
+                Get.back(result: result);
+              },
+              child: Text(
+                "SIMPAN",
+                style: TextStyle(color: primaryColor, fontWeight: FontWeight.w900),
+              ),
+            ),
           )
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
+            // Digital Time Picker Style
             GestureDetector(
               onTap: () async {
-                final picked = await showTimePicker(context: context, initialTime: selectedTime);
+                final picked = await showTimePicker(
+                  context: context, 
+                  initialTime: selectedTime,
+                  builder: (context, child) {
+                    return Theme(
+                      data: ThemeData.light().copyWith(
+                        colorScheme: ColorScheme.light(primary: primaryColor),
+                      ),
+                      child: child!,
+                    );
+                  }
+                );
                 if (picked != null) setState(() => selectedTime = picked);
               },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _timeTile(selectedTime.hourOfPeriod.toString().padLeft(2, '0')),
-                  Text(" : ", style: TextStyle(color: Colors.green[900], fontSize: 50)),
-                  _timeTile(selectedTime.minute.toString().padLeft(2, '0')),
-                  const SizedBox(width: 10),
-                  Text(
-                    selectedTime.period == DayPeriod.am ? "AM" : "PM",
-                    style: TextStyle(color: Colors.green[900], fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 40),
+                padding: const EdgeInsets.symmetric(vertical: 30),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    )
+                  ]
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _timeUnit(selectedTime.hourOfPeriod.toString().padLeft(2, '0')),
+                    Text(":", style: TextStyle(color: primaryColor, fontSize: 40, fontWeight: FontWeight.bold)),
+                    _timeUnit(selectedTime.minute.toString().padLeft(2, '0')),
+                    const SizedBox(width: 10),
+                    Column(
+                      children: [
+                        _periodUnit("AM", selectedTime.period == DayPeriod.am),
+                        const SizedBox(height: 5),
+                        _periodUnit("PM", selectedTime.period == DayPeriod.pm),
+                      ],
+                    )
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 50),
-            _buildSettingItem(Icons.repeat, "Ulangi", 
-              selectedDays.isEmpty ? "Sekali" : selectedDays.join(", "), 
-              () => _showDayPicker()),
-            _buildSettingItem(Icons.label_outline, "Label", 
-              labelController.text.isEmpty ? "Buang Sampah" : labelController.text, 
-              () => _showLabelDialog()),
-            _buildSettingItem(Icons.vibration, "Getar", 
-              isVibrate ? "On" : "Off", 
-              () => setState(() => isVibrate = !isVibrate)),
+            const SizedBox(height: 40),
+            
+            // Menu Settings
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Column(
+                  children: [
+                    _buildSettingItem(
+                      Icons.repeat_rounded, 
+                      "Ulangi", 
+                      selectedDays.isEmpty ? "Sekali" : selectedDays.join(", "), 
+                      () => _showDayPicker()
+                    ),
+                    Divider(height: 1, color: Colors.grey[100], indent: 60),
+                    _buildSettingItem(
+                      Icons.label_important_outline_rounded, 
+                      "Label", 
+                      labelController.text.isEmpty ? "Buang Sampah" : labelController.text, 
+                      () => _showLabelDialog()
+                    ),
+                    Divider(height: 1, color: Colors.grey[100], indent: 60),
+                    _buildSettingItem(
+                      Icons.vibration_rounded, 
+                      "Getar", 
+                      isVibrate ? "Aktif" : "Mati", 
+                      () => setState(() => isVibrate = !isVibrate),
+                      isSwitch: true
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSettingItem(IconData icon, String title, String sub, VoidCallback onTap) {
+  Widget _timeUnit(String value) {
+    return Text(
+      value,
+      style: TextStyle(
+        fontSize: 70,
+        fontWeight: FontWeight.w900,
+        color: const Color(0xFF1B5E20),
+        letterSpacing: -2,
+      ),
+    );
+  }
+
+  Widget _periodUnit(String label, bool isActive) {
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: isActive ? primaryColor : Colors.grey[300],
+      ),
+    );
+  }
+
+  Widget _buildSettingItem(IconData icon, String title, String sub, VoidCallback onTap, {bool isSwitch = false}) {
     return ListTile(
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: primaryColor),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8F5E9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: primaryColor, size: 22),
       ),
-      title: Text(title, style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold)),
-      subtitle: Text(sub, style: const TextStyle(color: Colors.grey)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+      subtitle: Text(sub, style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+      trailing: isSwitch 
+        ? Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: isVibrate, 
+              onChanged: (v) => setState(() => isVibrate = v),
+              activeColor: primaryColor,
+            ),
+          )
+        : const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
     );
   }
 
   void _showDayPicker() {
-    Get.defaultDialog(
-      title: "Pilih Hari",
-      content: StatefulBuilder(builder: (context, setSt) {
-        return Wrap(
-          spacing: 8,
-          children: days.map((d) => FilterChip(
-            label: Text(d),
-            selected: selectedDays.contains(d),
-            onSelected: (v) => setSt(() => v ? selectedDays.add(d) : selectedDays.remove(d)),
-          )).toList(),
-        );
-      }),
-      onConfirm: () { setState(() {}); Get.back(); }
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Pilih Hari", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              StatefulBuilder(builder: (context, setSt) {
+                return Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: days.map((d) {
+                    bool isSelected = selectedDays.contains(d);
+                    return ChoiceChip(
+                      label: Text(d),
+                      selected: isSelected,
+                      selectedColor: primaryColor,
+                      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                      onSelected: (v) => setSt(() => v ? selectedDays.add(d) : selectedDays.remove(d)),
+                    );
+                  }).toList(),
+                );
+              }),
+              const SizedBox(height: 25),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  ),
+                  onPressed: () { setState(() {}); Get.back(); },
+                  child: const Text("OK", style: TextStyle(color: Colors.white)),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   void _showLabelDialog() {
-    Get.defaultDialog(
-      title: "Label Alarm",
-      content: TextField(
-        controller: labelController,
-        decoration: const InputDecoration(hintText: "Misal: Sampah Plastik"),
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Label Jadwal", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              TextField(
+                controller: labelController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: scaffoldBg,
+                  hintText: "Misal: Sampah Plastik",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 25),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  ),
+                  onPressed: () { setState(() {}); Get.back(); },
+                  child: const Text("SIMPAN", style: TextStyle(color: Colors.white)),
+                ),
+              )
+            ],
+          ),
+        ),
       ),
-      onConfirm: () { setState(() {}); Get.back(); }
     );
   }
 }

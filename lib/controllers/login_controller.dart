@@ -24,6 +24,7 @@ class LoginController extends GetxController {
         "Peringatan",
         "Isi username dan password",
         backgroundColor: Colors.orangeAccent,
+        colorText: Colors.white,
       );
       return;
     }
@@ -31,29 +32,32 @@ class LoginController extends GetxController {
     isLoading.value = true;
     try {
       var box = Hive.box(DatabaseService.authBox);
-      var userData = box.get('user_${username.trim()}');
+      var session = Hive.box(DatabaseService.sessionBox);
+      String cleanUsername = username.trim();
+
+      var userData = box.get('user_$cleanUsername');
 
       if (userData != null && userData['password'] == hashPassword(password)) {
-        _createSession(username.trim());
+        bool alreadyEnabled = session.get(
+          'isBiometricEnabled',
+          defaultValue: false,
+        );
+        String? lastUser = session.get('currentUser');
 
-        // --- LOGIKA PENAWARAN BIOMETRIK ---
-        var session = Hive.box(DatabaseService.sessionBox);
-        String? biometricUser = session.get('currentUser');
+        _createSession(cleanUsername);
 
-        // Jika di HP ini belum ada user yang terdaftar biometrik
-        if (biometricUser == null || biometricUser.isEmpty) {
-          Get.offAllNamed('/home'); // Pindah ke home dulu
+        Get.offAllNamed('/home');
 
-          // Munculkan dialog setelah delay kecil agar transisi halaman selesai
-          Future.delayed(const Duration(milliseconds: 600), () {
-            _showOfferBiometricDialog(username.trim());
+        // LOGIKA POP-UP AESTHETIC
+        if (!alreadyEnabled || lastUser != cleanUsername) {
+          Future.delayed(const Duration(milliseconds: 800), () {
+            _showOfferBiometricDialog(cleanUsername);
           });
         } else {
-          Get.offAllNamed('/home');
           Get.snackbar(
             "Selamat Datang",
-            "Halo $username!",
-            backgroundColor: Colors.green,
+            "Halo $cleanUsername!",
+            backgroundColor: const Color(0xFF2E7D32),
             colorText: Colors.white,
           );
         }
@@ -72,44 +76,109 @@ class LoginController extends GetxController {
     }
   }
 
-  // Fungsi Dialog Penawaran
+  // --- TAMPILAN POP-UP BIOMETRIK AESTHETIC ---
   void _showOfferBiometricDialog(String username) {
-    Get.defaultDialog(
-      title: "Aktifkan Biometrik? 🔒",
-      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
-      middleText:
-          "Halo $username, mau masuk lebih cepat pakai sidik jari untuk sesi berikutnya?",
-      textConfirm: "Ya, Aktifkan",
-      textCancel: "Nanti Saja",
-      confirmTextColor: Colors.white,
-      buttonColor: const Color(0xFF6B8E23), // Warna hijau tema kamu
-      onConfirm: () {
-        var session = Hive.box(DatabaseService.sessionBox);
-        // Daftarkan user ini sebagai pemilik biometrik di HP ini
-        session.put('currentUser', username);
-        Get.back();
-        Get.snackbar(
-          "Berhasil",
-          "Biometrik aktif untuk $username",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      },
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Ikon Lingkaran Hijau
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.fingerprint_rounded,
+                  size: 50,
+                  color: Color(0xFF2E7D32),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Aktifkan Biometrik?",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B5E20),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Halo $username, mau masuk lebih cepat pakai sidik jari untuk sesi berikutnya?",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+              const SizedBox(height: 25),
+              
+              // Tombol Konfirmasi (Gradient)
+              GestureDetector(
+                onTap: () {
+                  var session = Hive.box(DatabaseService.sessionBox);
+                  session.put('currentUser', username);
+                  session.put('isBiometricEnabled', true);
+                  Get.back();
+                  Get.snackbar(
+                    "Berhasil",
+                    "Biometrik aktif untuk $username",
+                    backgroundColor: const Color(0xFF2E7D32),
+                    colorText: Colors.white,
+                    icon: const Icon(Icons.check_circle, color: Colors.white),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+                    ),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      "Ya, Aktifkan",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ),
+              
+              // Tombol Nanti Saja
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text(
+                  "Nanti Saja",
+                  style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: false,
     );
   }
 
-  // --- LOGIN BIOMETRIK (SUDAH DIPERBAIKI) ---
+  // --- LOGIN BIOMETRIK ---
   Future<void> loginWithBiometric() async {
     try {
       var session = Hive.box(DatabaseService.sessionBox);
-      // 1. Ambil siapa user terakhir yang login di HP ini
       String? lastUser = session.get('currentUser');
+      bool isBiometricEnabled = session.get(
+        'isBiometricEnabled',
+        defaultValue: false,
+      );
 
-      // 2. Jika tidak ada user (null atau kosong), jangan jalankan biometrik
-      if (lastUser == null || lastUser.isEmpty) {
+      if (lastUser == null || lastUser.isEmpty || !isBiometricEnabled) {
         Get.snackbar(
           "Akses Ditolak",
-          "Belum ada akun yang terikat di HP ini. Silakan login manual dulu.",
+          "Biometrik belum diaktifkan untuk akun manapun.",
           backgroundColor: Colors.orangeAccent,
           colorText: Colors.white,
         );
@@ -129,13 +198,12 @@ class LoginController extends GetxController {
         );
 
         if (didAuthenticate) {
-          // 3. Login sukses, buat sesi untuk user tersebut
           _createSession(lastUser);
           Get.offAllNamed('/home');
           Get.snackbar(
             "Berhasil",
             "Login biometrik sukses!",
-            backgroundColor: Colors.green,
+            backgroundColor: const Color(0xFF2E7D32),
             colorText: Colors.white,
           );
         }
@@ -144,6 +212,7 @@ class LoginController extends GetxController {
           "Info",
           "Perangkat tidak mendukung biometrik",
           backgroundColor: Colors.blueAccent,
+          colorText: Colors.white,
         );
       }
     } catch (e) {
@@ -154,26 +223,20 @@ class LoginController extends GetxController {
   void _createSession(String username) {
     var session = Hive.box(DatabaseService.sessionBox);
     session.put('isLoggedIn', true);
-    session.put(
-      'currentUser',
-      username,
-    ); // Menyimpan username untuk biometrik nanti
+    session.put('currentUser', username);
   }
 
   void logout(bool removeBiometric) {
     var session = Hive.box(DatabaseService.sessionBox);
-
-    // Matikan status login
     session.put('isLoggedIn', false);
 
     if (removeBiometric) {
-      // Menghapus username yang tertaut, sehingga tombol biometrik jadi abu-abu lagi
       session.delete('currentUser');
+      session.put('isBiometricEnabled', false);
       Get.snackbar("Log Out", "Akun dan tautan biometrik berhasil dilepas");
     } else {
       Get.snackbar("Log Out", "Berhasil keluar");
     }
-
     Get.offAllNamed('/login');
   }
 }

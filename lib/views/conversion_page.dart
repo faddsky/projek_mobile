@@ -13,7 +13,7 @@ class ConversionPage extends StatefulWidget {
 class _ConversionPageState extends State<ConversionPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final controller = Get.put(ConversionController()); // Inject Controller
+  final controller = Get.put(ConversionController());
 
   @override
   void initState() {
@@ -33,10 +33,10 @@ class _ConversionPageState extends State<ConversionPage>
       backgroundColor: const Color(0xFFF8FAF8),
       appBar: AppBar(
         title: const Text(
-          "Eco-Traveler Tools ✈️",
+          "Eco Tools",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF4A6741),
+            color: Color(0xFF1B5E20),
           ),
         ),
         backgroundColor: Colors.white,
@@ -44,12 +44,14 @@ class _ConversionPageState extends State<ConversionPage>
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF6B8E23),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xFF6B8E23),
+          labelColor: const Color(0xFF2E7D32),
+          unselectedLabelColor: Colors.grey[400],
+          indicatorColor: const Color(0xFF2E7D32),
+          indicatorWeight: 3,
+          indicatorSize: TabBarIndicatorSize.label,
           tabs: const [
-            Tab(text: "Currency"),
-            Tab(text: "World Time"),
+            Tab(text: "Mata Uang"),
+            Tab(text: "Waktu Dunia"),
           ],
         ),
       ),
@@ -70,59 +72,53 @@ class _ConversionPageState extends State<ConversionPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Input Amount",
+                  "Jumlah Input",
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B5E20),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextField(
                   controller: controller.amountController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: "Enter IDR Amount",
-                    prefixIcon: const Icon(
-                      Icons.payments_outlined,
-                      color: Color(0xFF6B8E23),
-                    ),
+                    hintText: "Masukkan Jumlah IDR",
+                    prefixIcon: const Icon(Icons.payments_rounded, color: Color(0xFF2E7D32)),
                     prefixText: "Rp ",
                     filled: true,
-                    fillColor: const Color(0xFFF9F9F9),
+                    fillColor: const Color(0xFFF1F8E9),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(15),
                       borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 const Text(
-                  "Target Currency",
+                  "Mata Uang Tujuan",
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B5E20),
                   ),
                 ),
                 const SizedBox(height: 12),
-                // FIX: Menggunakan initialValue untuk menghindari warning deprecated
                 Obx(
                   () => DropdownButtonFormField<String>(
-                    initialValue: controller.selectedCurrency.value,
+                    value: controller.selectedCurrency.value,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFFF9F9F9),
+                      fillColor: const Color(0xFFF1F8E9),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(15),
                         borderSide: BorderSide.none,
                       ),
                     ),
                     items: controller.currencyTips.keys
-                        .map(
-                          (String value) => DropdownMenuItem(
-                            value: value,
-                            child: Text(value),
-                          ),
-                        )
+                        .map((String value) => DropdownMenuItem(
+                              value: value,
+                              child: Text(value),
+                            ))
                         .toList(),
                     onChanged: (value) {
                       if (value != null) {
@@ -141,15 +137,15 @@ class _ConversionPageState extends State<ConversionPage>
                   ? null
                   : controller.handleCurrencyConversion,
               isLoading: controller.isLoadingCurrency.value,
-              text: "Calculate Eco-Exchange",
-              icon: Icons.auto_awesome_outlined,
+              text: "Hitung Kurs Eco",
+              icon: Icons.monetization_on_rounded, // Sudah diganti jadi ikon uang/dollar
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
           Obx(
             () => _buildResultDisplay(
               "${controller.resultCurrency.value.toStringAsFixed(2)} ${controller.selectedCurrency.value}",
-              "Exchange Result",
+              "Hasil Konversi",
             ),
           ),
           const SizedBox(height: 24),
@@ -164,8 +160,6 @@ class _ConversionPageState extends State<ConversionPage>
   }
 
   Widget _buildTimeTab() {
-    String localTime = DateFormat('HH:mm').format(DateTime.now());
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -174,19 +168,17 @@ class _ConversionPageState extends State<ConversionPage>
             child: Column(
               children: [
                 const Text(
-                  "Your Local Time",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  "Waktu Lokal Kamu",
+                  style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  localTime,
+                  DateFormat('HH:mm').format(DateTime.now()),
                   style: const TextStyle(
                     fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A6741),
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1B5E20),
+                    letterSpacing: -1,
                   ),
                 ),
               ],
@@ -198,32 +190,26 @@ class _ConversionPageState extends State<ConversionPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Destination Timezone",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey,
-                  ),
+                  "Zona Waktu Tujuan",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
                 ),
                 const SizedBox(height: 12),
-                // FIX: Menggunakan initialValue untuk menghindari warning deprecated
                 Obx(
                   () => DropdownButtonFormField<String>(
-                    initialValue: controller.selectedTimezone.value,
+                    value: controller.selectedTimezone.value,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFFF9F9F9),
+                      fillColor: const Color(0xFFF1F8E9),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(15),
                         borderSide: BorderSide.none,
                       ),
                     ),
                     items: controller.timezones.entries
-                        .map(
-                          (e) => DropdownMenuItem(
-                            value: e.value['zone'].toString(),
-                            child: Text(e.key),
-                          ),
-                        )
+                        .map((e) => DropdownMenuItem(
+                              value: e.value['zone'].toString(),
+                              child: Text(e.key),
+                            ))
                         .toList(),
                     onChanged: (val) {
                       if (val != null) {
@@ -242,35 +228,26 @@ class _ConversionPageState extends State<ConversionPage>
                   ? null
                   : controller.handleTimeConversion,
               isLoading: controller.isLoadingTime.value,
-              text: "Sync World Time",
+              text: "Sinkron Waktu Dunia",
               icon: Icons.public_rounded,
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
           Obx(() {
             if (controller.remoteTime.value == "--:--") {
-              return const Opacity(
-                opacity: 0.5,
-                child: Text(
-                  "Results will appear here",
-                  style: TextStyle(fontStyle: FontStyle.italic),
-                ),
+              return Text(
+                "Pilih tujuan untuk sinkronisasi waktu",
+                style: TextStyle(color: Colors.grey[400], fontStyle: FontStyle.italic),
               );
             }
-
-            // Logika tip malam/siang berdasarkan waktu remote
-            int hour =
-                int.tryParse(controller.remoteTime.value.split(':')[0]) ?? 0;
+            int hour = int.tryParse(controller.remoteTime.value.split(':')[0]) ?? 0;
             String tip = (hour >= 18 || hour < 6)
-                ? "Di tujuan sedang malam hari. Jangan lupa matikan perangkat yang tidak terpakai! 🌙"
-                : "Di sana sedang siang hari. Manfaatkan cahaya alami untuk menghemat listrik! ☀️";
+                ? "Di sana sudah malam. Jangan lupa matikan alat elektronik yang tidak dipakai! 🌙"
+                : "Di sana sedang siang hari. Manfaatkan cahaya alami untuk hemat energi! ☀️";
 
             return Column(
               children: [
-                _buildResultDisplay(
-                  controller.remoteTime.value,
-                  controller.remoteDate.value,
-                ),
+                _buildResultDisplay(controller.remoteTime.value, controller.remoteDate.value),
                 const SizedBox(height: 24),
                 _buildEcoTipBox(tip),
               ],
@@ -281,27 +258,23 @@ class _ConversionPageState extends State<ConversionPage>
     );
   }
 
-  // --- Widget Helpers ---
-  Widget _buildEcoTipBox(String message) {
+  // --- Pembantu Widget ---
+  Widget _buildEcoTipBox(String pesan) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green[50],
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.green.shade100),
+        color: const Color(0xFFF1F8E9),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFDCEDC8)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.lightbulb_outline, color: Color(0xFF6B8E23)),
+          const Icon(Icons.auto_awesome, color: Colors.amber, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              message,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Colors.green,
-                fontWeight: FontWeight.w500,
-              ),
+              pesan,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF33691E), fontWeight: FontWeight.w500, height: 1.4),
             ),
           ),
         ],
@@ -315,10 +288,10 @@ class _ConversionPageState extends State<ConversionPage>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withAlpha(10),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -336,59 +309,36 @@ class _ConversionPageState extends State<ConversionPage>
   }) {
     return SizedBox(
       width: double.infinity,
-      height: 60,
+      height: 55,
       child: ElevatedButton.icon(
         onPressed: onPressed,
-        icon: isLoading
-            ? const SizedBox.shrink()
-            : Icon(icon, color: Colors.white),
+        icon: isLoading ? const SizedBox.shrink() : Icon(icon, color: Colors.white),
         label: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : Text(
-                text,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : Text(text, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6B8E23),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 2,
+          backgroundColor: const Color(0xFF2E7D32),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 0,
         ),
       ),
     );
   }
 
-  Widget _buildResultDisplay(String mainText, String subText) {
+  Widget _buildResultDisplay(String teksUtama, String teksSub) {
     return Column(
       children: [
-        Text(subText, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        const SizedBox(height: 8),
+        Text(teksSub, style: TextStyle(color: Colors.grey[500], fontSize: 13, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             color: const Color(0xFFE8F5E9),
             borderRadius: BorderRadius.circular(15),
           ),
           child: Text(
-            mainText,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D32),
-            ),
-            textAlign: TextAlign.center,
+            teksUtama,
+            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20)),
           ),
         ),
       ],

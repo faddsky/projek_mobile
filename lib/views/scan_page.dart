@@ -11,74 +11,94 @@ class ScanPage extends StatelessWidget {
     final controller = Get.put(ScanController());
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAF8), // Sage background tipis
       appBar: AppBar(
         title: const Text(
           "Eco Scan",
           style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
+            color: Color(0xFF1B5E20),
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1B5E20)),
           onPressed: () => Get.back(),
         ),
       ),
       body: Stack(
         children: [
           SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                // PREVIEW CONTAINER
+                // PREVIEW CONTAINER DENGAN GLASSMORPHISM EFFECT
                 Container(
                   width: double.infinity,
-                  height: 380,
-                  margin: const EdgeInsets.all(20),
+                  height: 400,
+                  margin: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.circular(25),
-                    border: Border.all(
-                      color: const Color(0xFF6B8E23),
-                      width: 2,
-                    ),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(23),
+                    borderRadius: BorderRadius.circular(30),
                     child: Obx(() {
                       if (controller.selectedImagePath.value.isEmpty) {
-                        return const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.camera_enhance_rounded,
-                              size: 70,
-                              color: Colors.white24,
+                        return Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            SizedBox(height: 20),
-                            Text(
-                              "Scan Sampahmu di Sini",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_enhance_rounded,
+                                  size: 60,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              "• Gunakan latar belakang polos\n• Scan sampah satu per satu\n• Pastikan cahaya cukup terang",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white60,
-                                fontSize: 13,
-                                height: 1.6,
+                              const SizedBox(height: 24),
+                              const Text(
+                                "Scan Sampahmu di Sini",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+                              Text(
+                                "Pastikan objek terlihat jelas\ndan pencahayaan cukup terang",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontSize: 13,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       } else {
                         return Image.file(
@@ -90,12 +110,9 @@ class ScanPage extends StatelessWidget {
                   ),
                 ),
 
-                // BUTTON SOURCE AREA
+                // BUTTON SOURCE AREA (MODERN CARD)
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 30,
-                    horizontal: 30,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
                       const Text(
@@ -103,74 +120,85 @@ class ScanPage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF1B5E20),
                         ),
                       ),
-                      const SizedBox(height: 25),
+                      const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _buildActionButton(
                             icon: Icons.photo_library_rounded,
                             label: "Galeri",
-                            color: Colors.blue[50]!,
-                            iconColor: Colors.blue,
-                            onTap: () =>
-                                controller.pickImageFromSource(isCamera: false),
+                            color: const Color(0xFFE3F2FD),
+                            iconColor: Colors.blue[700]!,
+                            onTap: () => controller.pickImageFromSource(isCamera: false),
                           ),
+                          const SizedBox(width: 20),
                           _buildActionButton(
                             icon: Icons.camera_alt_rounded,
                             label: "Kamera",
                             color: const Color(0xFFE8F5E9),
-                            iconColor: const Color(0xFF6B8E23),
-                            onTap: () =>
-                                controller.pickImageFromSource(isCamera: true),
+                            iconColor: const Color(0xFF2E7D32),
+                            onTap: () => controller.pickImageFromSource(isCamera: true),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 35),
                       Obx(
-                        () => controller.selectedImagePath.value.isNotEmpty
-                            ? SizedBox(
-                                width: double.infinity,
-                                height: 55,
-                                child: ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF6B8E23),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
+                        () => AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: controller.selectedImagePath.value.isNotEmpty
+                              ? SizedBox(
+                                  width: double.infinity,
+                                  height: 60,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF2E7D32),
+                                      foregroundColor: Colors.white,
+                                      elevation: 5,
+                                      shadowColor: const Color(0xFF2E7D32).withOpacity(0.4),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    onPressed: () => _showResultSheet(context, controller),
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.analytics_outlined),
+                                        SizedBox(width: 12),
+                                        Text(
+                                          "Lihat Hasil Scan",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  onPressed: () =>
-                                      _showResultSheet(context, controller),
-                                  icon: const Icon(
-                                    Icons.analytics_outlined,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    "Lihat Hasil Scan",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : const SizedBox(height: 55),
+                                )
+                              : const SizedBox(height: 60),
+                        ),
                       ),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          // LOADING OVERLAY
+
+          // LOADING OVERLAY (BLUR EFFECT)
           Obx(
             () => controller.isLoading.value
                 ? Container(
-                    color: Colors.black54,
+                    color: Colors.black.withOpacity(0.4),
                     child: const Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF6B8E23),
+                        color: Colors.white,
+                        strokeWidth: 5,
                       ),
                     ),
                   )
@@ -184,46 +212,46 @@ class ScanPage extends StatelessWidget {
   void _showResultSheet(BuildContext context, ScanController controller) {
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(25),
+        padding: const EdgeInsets.fromLTRB(24, 15, 24, 30),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40,
-              height: 5,
+              width: 50,
+              height: 6,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
 
-            // PESAN ALERT JIKA RAGU (THRESHOLD)
+            // ALERT LOW CONFIDENCE
             Obx(
               () => controller.isLowConfidence.value
                   ? Container(
-                      // PERBAIKAN DI SINI: Pakai EdgeInsets.only
-                      margin: const EdgeInsets.only(bottom: 15),
-                      padding: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.orangeAccent),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.orangeAccent.withOpacity(0.5)),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline, color: Colors.orange),
-                          const SizedBox(width: 10),
+                          const Icon(Icons.info_rounded, color: Colors.orange),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              "Sepertinya ini ${controller.resultLabel.value.toLowerCase()}, namun coba foto lebih jelas atau di latar polos untuk hasil lebih akurat.",
+                              "Sepertinya ini ${controller.resultLabel.value.toLowerCase()}, namun coba foto lebih jelas agar lebih akurat.",
                               style: TextStyle(
                                 color: Colors.orange[900],
                                 fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -237,26 +265,42 @@ class ScanPage extends StatelessWidget {
               () => Text(
                 controller.resultLabel.value,
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF6B8E23),
+                  color: Color(0xFF2E7D32),
                 ),
               ),
             ),
+            const SizedBox(height: 5),
             Obx(
-              () => Text(
-                "Confidence: ${controller.confidence.value.toStringAsFixed(1)}%",
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              () => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  "Confidence: ${controller.confidence.value.toStringAsFixed(1)}%",
+                  style: const TextStyle(
+                    color: Color(0xFF2E7D32),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
 
-            // ECO-FACT BOX
+            // ECO-FACT BOX (PREMIUM STYLE)
             Container(
-              padding: const EdgeInsets.all(15),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F8E9),
-                borderRadius: BorderRadius.circular(15),
+                gradient: LinearGradient(
+                  colors: [const Color(0xFFF1F8E9), Colors.white],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(25),
                 border: Border.all(color: const Color(0xFFDCEDC8)),
               ),
               child: Column(
@@ -264,33 +308,29 @@ class ScanPage extends StatelessWidget {
                   const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.auto_awesome, color: Colors.amber, size: 18),
-                      SizedBox(width: 8),
+                      Icon(Icons.auto_awesome, color: Colors.amber, size: 20),
+                      SizedBox(width: 10),
                       Text(
-                        "Eco-Fact",
+                        "Fakta Menarik",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          color: Color(0xFF1B5E20),
+                          fontSize: 15,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   Obx(
                     () => controller.isAiLoading.value
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF6B8E23),
-                            ),
-                          )
+                        ? const CircularProgressIndicator(strokeWidth: 2)
                         : Text(
                             controller.funFact.value,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 14,
+                              height: 1.6,
+                              color: Color(0xFF424242),
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -298,21 +338,21 @@ class ScanPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 55,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
+                  backgroundColor: const Color(0xFF1B5E20),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
                 onPressed: () => Get.back(),
                 child: const Text(
-                  "Tutup",
-                  style: TextStyle(color: Colors.white),
+                  "Mengerti",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -320,6 +360,7 @@ class ScanPage extends StatelessWidget {
         ),
       ),
       isScrollControlled: true,
+      backgroundColor: Colors.transparent, // Fixes white corner in bottom sheet
     );
   }
 
@@ -330,18 +371,40 @@ class ScanPage extends StatelessWidget {
     required Color iconColor,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            child: Icon(icon, size: 35, color: iconColor),
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-        ],
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: Icon(icon, size: 30, color: iconColor),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B5E20),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

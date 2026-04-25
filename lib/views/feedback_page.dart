@@ -6,40 +6,53 @@ class FeedbackPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Menggunakan warna background yang konsisten dengan HomeTab
+      // Background sage cerah agar serasi dengan halaman lain
       backgroundColor: const Color(0xFFF8FAF8), 
       appBar: AppBar(
         title: const Text(
-          "Kesan & Saran TPM 📝", 
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)
+          "Kesan & Saran TPM", 
+          style: TextStyle(fontWeight: FontWeight.bold)
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        foregroundColor: const Color(0xFF4A6741),
+        foregroundColor: const Color(0xFF1B5E20), // Hijau tua Emerald
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Section
-            const Text(
-              "Bagaimana kesanmu selama kuliah TPM?", 
-              style: TextStyle(
-                fontSize: 20, 
-                fontWeight: FontWeight.bold, 
-                color: Color(0xFF2E7D32)
-              )
+            // Header Section dengan animasi visual kecil
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                "Feedback Kuliah",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2E7D32),
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 12),
             
             // Konten Kesan
             _buildFeedbackCard(
               "Kesan Belajar", 
               "Kuliah TPM sangat menantang! Belajar Flutter dan integrasi sensor bikin aku makin paham gimana cara kerja aplikasi mobile yang sesungguhnya.",
               Icons.auto_awesome_rounded,
-              const Color(0xFFE8F5E9), // Light Green accent
+              const Color(0xFFE8F5E9),
             ),
             
             const SizedBox(height: 20),
@@ -49,25 +62,39 @@ class FeedbackPage extends StatelessWidget {
               "Saran Kedepan", 
               "Semoga ke depannya materi tentang integrasi AI di Flutter bisa lebih diperbanyak lagi karena seru banget!",
               Icons.lightbulb_rounded,
-              const Color(0xFFFFF3E0), // Light Orange accent
+              const Color(0xFFFFF3E0),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
 
-            // Tambahan: Quote atau Penutup Kecil agar lebih manis
+            // Penutup yang lebih manis
             Center(
-              child: Opacity(
-                opacity: 0.5,
-                child: Column(
-                  children: const [
-                    Icon(Icons.eco_rounded, color: Color(0xFF6B8E23)),
-                    SizedBox(height: 8),
-                    Text(
-                      "Terima kasih telah berproses bersama!",
-                      style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                        )
+                      ]
                     ),
-                  ],
-                ),
+                    child: const Icon(Icons.eco_rounded, color: Color(0xFF8BC34A), size: 24),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Project EcoStep 2026",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFBDBDBD),
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
               ),
             )
           ],
@@ -79,15 +106,15 @@ class FeedbackPage extends StatelessWidget {
   Widget _buildFeedbackCard(String title, String content, IconData icon, Color accentColor) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24), // Padding lebih lega
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(25), // Sudut lebih melengkung agar imut
+        borderRadius: BorderRadius.circular(28), // Lebih bulat agar imut/aesthetic
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04), 
-            blurRadius: 15, 
-            offset: const Offset(0, 8)
+            color: Colors.black.withOpacity(0.03), 
+            blurRadius: 20, 
+            offset: const Offset(0, 10)
           )
         ],
       ),
@@ -96,36 +123,40 @@ class FeedbackPage extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Ikon dengan background lingkaran kecil
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: accentColor,
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(14), // Kotak melengkung bukan lingkaran sempurna
                 ),
-                child: Icon(icon, color: const Color(0xFF6B8E23), size: 20),
+                child: Icon(icon, color: const Color(0xFF2E7D32), size: 22),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Text(
                 title, 
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold, 
-                  fontSize: 16,
-                  color: Color(0xFF4A6741)
+                  fontWeight: FontWeight.w800, 
+                  fontSize: 17,
+                  color: Color(0xFF1B5E20)
                 )
               ),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 15),
-            child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F1F1)),
+          const SizedBox(height: 20),
+          // Pengganti Divider dengan garis tipis yang lebih elegan
+          Container(
+            height: 1,
+            width: 40,
+            color: const Color(0xFFE0E0E0),
           ),
+          const SizedBox(height: 16),
           Text(
             content, 
-            style: const TextStyle(
-              height: 1.6, 
+            style: TextStyle(
+              height: 1.7, // Line height lebih renggang agar enak dibaca
               fontSize: 14, 
-              color: Colors.black87
+              color: Colors.grey[800],
+              letterSpacing: 0.2,
             )
           ),
         ],
