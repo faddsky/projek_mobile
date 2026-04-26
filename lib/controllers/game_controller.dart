@@ -15,7 +15,7 @@ class FallingItem {
 }
 
 class GameController extends GetxController {
-  // Variabel Reaktif (OBS)
+  // --- Variabel Reaktif ---
   var posX = 0.0.obs;
   var score = 0.obs;
   var lives = 3.obs;
@@ -31,42 +31,51 @@ class GameController extends GetxController {
   Timer? spawnTimer, updateTimer, difficultyTimer;
   final Random _random = Random();
 
+  // --- Inisialisasi Sensor ---
   void initSensors(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double limit = (screenWidth / 2) - 50;
 
     _accelSubscription = accelerometerEventStream().listen((event) {
       if (isGameOver.value || !isGameStarted.value || isExploding.value) return;
+      
+      // Sensitivitas gerak tong (Tilt)
       double targetX = -event.x * 55;
-      posX.value = (posX.value * 0.75) + (targetX * 0.25);
+      posX.value = (posX.value * 0.75) + (targetX * 0.25); // Smoothing
       posX.value = posX.value.clamp(-limit, limit);
     });
 
     _gyroSubscription = gyroscopeEventStream().listen((event) {
       if (!isGameStarted.value || isGameOver.value || bombCount.value <= 0 || isExploding.value) return;
-      // Logika Kocok
+      
+      // Deteksi kocok (Shake) untuk bom
       if ((event.x.abs() + event.y.abs() + event.z.abs()) > 15) {
         handleShakeExplosion();
       }
     });
   }
 
+  // --- Logika Game Loop ---
   void startGame() {
     isGameStarted.value = true;
+    isGameOver.value = false;
     _startSpawnTimer();
     
+    // Update fisika setiap 30ms
     updateTimer = Timer.periodic(const Duration(milliseconds: 30), (_) => _updatePhysics());
     
+    // Naikkan kesulitan setiap 30 detik
     difficultyTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (isGameOver.value) return;
       difficultyLevel.value++;
       spawnBomb();
-      _startSpawnTimer();
+      _startSpawnTimer(); // Refresh spawn speed
     });
   }
 
   void _startSpawnTimer() {
     spawnTimer?.cancel();
+    // Semakin tinggi level, semakin cepat spawn (minimal 400ms)
     int spawnSpeed = max(400, 1400 - (difficultyLevel.value * 150));
     spawnTimer = Timer.periodic(Duration(milliseconds: spawnSpeed), (_) => spawnTrash());
   }
@@ -90,7 +99,7 @@ class GameController extends GetxController {
 
     fallingItems.add(FallingItem(
       imagePath: 'assets/images/$path',
-      x: _random.nextDouble() * 260 - 130, // Posisi X acak
+      x: _random.nextDouble() * 260 - 130, 
       y: -50,
       type: isRecyclable ? TrashType.recyclable : TrashType.nonRecyclable,
     ));
@@ -106,15 +115,16 @@ class GameController extends GetxController {
   }
 
   void _updatePhysics() {
-    if (isExploding.value) return;
+    if (isExploding.value || isGameOver.value) return;
 
     for (int i = fallingItems.length - 1; i >= 0; i--) {
+      // Kecepatan jatuh bertambah sesuai level
       fallingItems[i].y += (6 + (difficultyLevel.value * 0.8));
 
-      // Deteksi tabrakan mepet
+      // Deteksi tabrakan dengan tong (Posisi Y antara 590-680)
       if (fallingItems[i].y > 590 && 
           fallingItems[i].y < 680 && 
-          (fallingItems[i].x - posX.value).abs() < 30) {
+          (fallingItems[i].x - posX.value).abs() < 40) {
         _handleCollision(i);
       } else if (fallingItems[i].y > 850) {
         fallingItems.removeAt(i);
@@ -140,6 +150,7 @@ class GameController extends GetxController {
     isExploding.value = true;
     bombCount.value--;
     
+    // Ubah semua sampah non-recyclable di layar jadi ledakan
     for (var item in fallingItems) {
       if (item.type == TrashType.nonRecyclable) {
         item.imagePath = 'assets/images/explosion.png';
@@ -153,10 +164,75 @@ class GameController extends GetxController {
     isExploding.value = false;
   }
 
-  void handleGameOver() {
+  // --- Game Over & Database Sync ---
+  void handleGameOver() async {
     isGameOver.value = true;
     stopTimers();
-    Get.find<DatabaseService>().addGamePoints(score.value);
+
+    final db = Get.find<DatabaseService>();
+    
+    // 1. Simpan poin total
+    db.addGamePoints(score.value);
+    
+    // 2. Cek dan update High Score
+    await db.updateHighScore(score.value);
+    int currentHigh = db.getHighScore();
+
+    // 3. Munculkan Dialog Hasil
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("GAME OVER! 🗑️", 
+          textAlign: TextAlign.center, 
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Kerja bagus! Terus jaga lingkungan ya."),
+            const SizedBox(height: 20),
+            Text("Skor Kamu: ${score.value}", 
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+            ),
+            Text("Skor Tertinggi: $currentHigh", 
+              style: const TextStyle(fontSize: 16, color: Colors.green, fontWeight: FontWeight.bold)
+            ),
+            if (score.value >= currentHigh && score.value > 0)
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text("REKOR BARU! 🎉", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+              ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    onPressed: () {
+                      Get.back(); // Tutup dialog
+                      resetGame();
+                    },
+                    child: const Text("Main Lagi", style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Get.back(); // Tutup dialog
+                    Get.back(); // Keluar ke halaman sebelumnya
+                  },
+                  child: const Text("Keluar"),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+      barrierDismissible: false,
+    );
   }
 
   void resetGame() {

@@ -45,7 +45,7 @@ class ScanPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -69,7 +69,7 @@ class ScanPage extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -92,7 +92,7 @@ class ScanPage extends StatelessWidget {
                                 "Pastikan objek terlihat jelas\ndan pencahayaan cukup terang",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withValues(alpha: 0.7),
                                   fontSize: 13,
                                   height: 1.5,
                                 ),
@@ -157,7 +157,7 @@ class ScanPage extends StatelessWidget {
                                       backgroundColor: const Color(0xFF2E7D32),
                                       foregroundColor: Colors.white,
                                       elevation: 5,
-                                      shadowColor: const Color(0xFF2E7D32).withOpacity(0.4),
+                                      shadowColor: const Color(0xFF2E7D32).withValues(alpha: 0.4),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(20),
                                       ),
@@ -194,7 +194,7 @@ class ScanPage extends StatelessWidget {
           Obx(
             () => controller.isLoading.value
                 ? Container(
-                    color: Colors.black.withOpacity(0.4),
+                    color: Colors.black.withValues(alpha: 0.4),
                     child: const Center(
                       child: CircularProgressIndicator(
                         color: Colors.white,
@@ -239,7 +239,7 @@ class ScanPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.orange[50],
                         borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: Colors.orangeAccent.withOpacity(0.5)),
+                        border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.5)),
                       ),
                       child: Row(
                         children: [
@@ -381,7 +381,7 @@ class ScanPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),

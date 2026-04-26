@@ -52,7 +52,7 @@ class _HomeTabState extends State<HomeTab> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5)),
           ],
         ),
         child: BottomNavigationBar(
@@ -159,13 +159,13 @@ class _HomeTabState extends State<HomeTab> {
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [colors[aqi], colors[aqi].withOpacity(0.8)],
+          colors: [colors[aqi], colors[aqi].withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
-          BoxShadow(color: colors[aqi].withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
+          BoxShadow(color: colors[aqi].withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8)),
         ],
       ),
       child: Stack(
@@ -173,7 +173,7 @@ class _HomeTabState extends State<HomeTab> {
           Positioned(
             right: -20,
             top: -20,
-            child: Icon(Icons.wb_sunny_rounded, size: 100, color: Colors.white.withOpacity(0.2)),
+            child: Icon(Icons.wb_sunny_rounded, size: 100, color: Colors.white.withValues(alpha: 0.2)),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +184,7 @@ class _HomeTabState extends State<HomeTab> {
               const SizedBox(height: 15),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -224,7 +224,7 @@ class _HomeTabState extends State<HomeTab> {
       },
       child: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+        decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -282,15 +282,15 @@ class _HomeTabState extends State<HomeTab> {
       child: Container(
         width: isFullWidth ? double.infinity : null,
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: b, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: ic.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+        decoration: BoxDecoration(color: b, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: ic.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
         child: Column(
           children: [
             Icon(i, size: isFullWidth ? 45 : 35, color: ic),
             const SizedBox(height: 10),
-            Text(t, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: ic.withOpacity(0.8))),
+            Text(t, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: ic.withValues(alpha: 0.8))),
             if (subtitle != null) ...[
               const SizedBox(height: 4),
-              Text(subtitle, style: TextStyle(fontSize: 11, color: ic.withOpacity(0.6))),
+              Text(subtitle, style: TextStyle(fontSize: 11, color: ic.withValues(alpha: 0.6))),
             ]
           ],
         ),

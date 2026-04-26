@@ -119,7 +119,7 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withValues(alpha: 0.03),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     )

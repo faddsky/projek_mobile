@@ -79,7 +79,7 @@ class NotificationPage extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF2E7D32).withOpacity(0.05),
+                  color: const Color(0xFF2E7D32).withValues(alpha: 0.05),
                   blurRadius: 20,
                 ),
               ],
@@ -87,7 +87,7 @@ class NotificationPage extends StatelessWidget {
             child: Icon(
               Icons.notifications_none_rounded,
               size: 70,
-              color: Colors.green.withOpacity(0.2),
+              color: Colors.green.withValues(alpha: 0.2),
             ),
           ),
           const SizedBox(height: 20),
@@ -117,7 +117,7 @@ class NotificationPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

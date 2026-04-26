@@ -58,7 +58,7 @@ class _AlarmPageState extends State<AlarmPage> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withValues(alpha: 0.03),
                         blurRadius: 15,
                         offset: const Offset(0, 8),
                       ),
@@ -166,10 +166,10 @@ class _AlarmPageState extends State<AlarmPage> {
           Container(
             padding: const EdgeInsets.all(25),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.05),
+              color: Colors.green.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.alarm_add_rounded, size: 70, color: Colors.green.withOpacity(0.2)),
+            child: Icon(Icons.alarm_add_rounded, size: 70, color: Colors.green.withValues(alpha: 0.2)),
           ),
           const SizedBox(height: 20),
           Text(

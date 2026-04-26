@@ -16,13 +16,13 @@ class DatabaseService extends GetxService {
   static const String historyBox = 'history_box';
   static const String activityBox = 'activity_box';
   static const String sessionBox = 'session_box';
-  static const String notificationBox = 'notification_box'; 
+  static const String notificationBox = 'notification_box';
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
   Future<DatabaseService> init() async {
     await Hive.initFlutter();
-    
+
     await Hive.openBox(authBox);
     await Hive.openBox(profileBox);
     await Hive.openBox(historyBox);
@@ -62,19 +62,19 @@ class DatabaseService extends GetxService {
   void saveNotification(String title, String body) {
     var box = Hive.box(notificationBox);
     var session = Hive.box(sessionBox);
-    
+
     String currentUser = session.get('currentUser', defaultValue: 'guest');
 
     List<dynamic> logs = List.from(box.get('logs', defaultValue: []));
     logs.insert(0, {
-      'user': currentUser, 
+      'user': currentUser,
       'title': title,
       'body': body,
       'time': DateTime.now().toString(),
       'isRead': false,
     });
     box.put('logs', logs);
-    
+
     updateUnreadCount();
   }
 
@@ -98,7 +98,7 @@ class DatabaseService extends GetxService {
     String currentUser = session.get('currentUser', defaultValue: 'guest');
 
     List<dynamic> allLogs = List.from(box.get('logs', defaultValue: []));
-    
+
     for (var i = 0; i < allLogs.length; i++) {
       var notification = Map.from(allLogs[i] as Map);
       if (notification['user'] == currentUser) {
@@ -106,7 +106,7 @@ class DatabaseService extends GetxService {
         allLogs[i] = notification;
       }
     }
-    
+
     box.put('logs', allLogs);
     unreadCount.value = 0;
   }
@@ -115,7 +115,7 @@ class DatabaseService extends GetxService {
   void checkAndSendGreenTip() {
     var box = Hive.box(notificationBox);
     var session = Hive.box(sessionBox);
-    
+
     String currentUser = session.get('currentUser', defaultValue: 'guest');
     String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     String userTipKey = 'tip_sent_${currentUser}_$today';
@@ -131,7 +131,7 @@ class DatabaseService extends GetxService {
         "Hemat energi yuk! Matikan lampu yang tidak terpakai. 💡 🌱"
       ];
       String tipHariIni = (tips..shuffle()).first;
-      
+
       triggerAlarm(DateFormat.jm().format(DateTime.now()), tipHariIni);
       box.put(userTipKey, true);
     }
@@ -152,11 +152,11 @@ class DatabaseService extends GetxService {
       } catch (_) {
         parsedTime = DateFormat("hh:mma").parse(timeStr.replaceAll(" ", ""));
       }
-      
+
       final DateTime now = DateTime.now();
       DateTime scheduledDate = DateTime(
-        now.year, now.month, now.day, 
-        parsedTime.hour, parsedTime.minute
+          now.year, now.month, now.day,
+          parsedTime.hour, parsedTime.minute
       );
 
       if (scheduledDate.isBefore(now)) {
@@ -191,9 +191,9 @@ class DatabaseService extends GetxService {
   // --- PEMICU ALARM & OTOMATIS SIMPAN RIWAYAT ---
   Future<void> triggerAlarm(String time, String label) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'eco_step_alarm_high', 
-      'Alarm Jadwal Sampah',   
+    AndroidNotificationDetails(
+      'eco_step_alarm_high',
+      'Alarm Jadwal Sampah',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
@@ -201,7 +201,7 @@ class DatabaseService extends GetxService {
       fullScreenIntent: true,
     );
     const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+    NotificationDetails(android: androidPlatformChannelSpecifics);
 
     bool isTip = label.contains("✨") || label.contains("🌱") || label.contains("🍃");
     String title = isTip ? "Tips Ramah Lingkungan 🍃" : "Waktunya Buang Sampah! 🚛";
@@ -243,7 +243,7 @@ class DatabaseService extends GetxService {
   void updateExistingAlarm(int index, Map<String, dynamic> newData) {
     var box = Hive.box(activityBox);
     List<dynamic> currentAlarms = List.from(getAlarmsFromActivity());
-    
+
     if (index >= 0 && index < currentAlarms.length) {
       currentAlarms[index] = newData;
       box.put('alarm_list', currentAlarms);
@@ -257,7 +257,7 @@ class DatabaseService extends GetxService {
     var box = Hive.box(activityBox);
     List<dynamic> currentAlarms = List.from(getAlarmsFromActivity());
     String label = currentAlarms[index]['label'];
-    
+
     currentAlarms.removeAt(index);
     box.put('alarm_list', currentAlarms);
     _notificationsPlugin.cancel(index);
@@ -289,7 +289,7 @@ class DatabaseService extends GetxService {
   }
 
   String hashPassword(String password) {
-    var bytes = utf8.encode(password); 
+    var bytes = utf8.encode(password);
     return sha256.convert(bytes).toString();
   }
 
@@ -300,7 +300,7 @@ class DatabaseService extends GetxService {
     String currentUser = session.get('currentUser') ?? 'guest';
 
     box.add({
-      'user': currentUser, 
+      'user': currentUser,
       'label': label,
       'confidence': confidence,
       'funFact': funFact,
@@ -313,6 +313,8 @@ class DatabaseService extends GetxService {
     }
   }
 
+  // --- LOGIKA POIN & HIGH SCORE ---
+
   int getTotalPoints() {
     return Hive.box(profileBox).get('total_points', defaultValue: 0);
   }
@@ -321,5 +323,26 @@ class DatabaseService extends GetxService {
     var box = Hive.box(profileBox);
     int currentPoints = getTotalPoints();
     box.put('total_points', currentPoints + newPoints);
+  }
+
+  // FITUR HIGH SCORE: Mengambil skor tertinggi per user
+  int getHighScore() {
+    var box = Hive.box(profileBox);
+    var session = Hive.box(sessionBox);
+    String currentUser = session.get('currentUser', defaultValue: 'guest');
+    return box.get('high_score_$currentUser', defaultValue: 0);
+  }
+
+  // FITUR HIGH SCORE: Mengupdate skor tertinggi jika skor baru lebih besar
+  Future<void> updateHighScore(int currentScore) async {
+    var box = Hive.box(profileBox);
+    var session = Hive.box(sessionBox);
+    String currentUser = session.get('currentUser', defaultValue: 'guest');
+
+    int oldHighScore = getHighScore();
+    if (currentScore > oldHighScore) {
+      await box.put('high_score_$currentUser', currentScore);
+      saveNotification("Rekor Baru! 🏆", "Selamat! Kamu mencapai skor tertinggi baru: $currentScore");
+    }
   }
 }

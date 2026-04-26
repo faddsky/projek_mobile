@@ -48,7 +48,7 @@ class SignUpPage extends StatelessWidget {
                       border: Border.all(color: const Color(0xFF4CAF50), width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF2E7D32).withOpacity(0.1),
+                          color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -126,7 +126,7 @@ class SignUpPage extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF2E7D32).withOpacity(0.3),
+                    color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),

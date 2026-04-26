@@ -32,7 +32,7 @@ class LoginPage extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF2E7D32).withOpacity(0.1),
+                        color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
                         blurRadius: 20,
                         spreadRadius: 5,
                         offset: const Offset(0, 10),
@@ -111,7 +111,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF2E7D32).withOpacity(0.3),
+                      color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -171,7 +171,7 @@ class LoginPage extends StatelessWidget {
                         shape: BoxShape.circle, // Diubah dari Box menjadi Circle
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.green.withOpacity(0.1),
+                            color: Colors.green.withValues(alpha: 0.1),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
