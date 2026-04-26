@@ -19,6 +19,11 @@ class _ConversionPageState extends State<ConversionPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    
+    // Memicu timer di controller agar jam langsung berdetak saat halaman dibuka
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.handleTimeConversion();
+    });
   }
 
   @override
@@ -62,6 +67,7 @@ class _ConversionPageState extends State<ConversionPage>
     );
   }
 
+  // --- TAB MATA UANG ---
   Widget _buildCurrencyTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -73,10 +79,7 @@ class _ConversionPageState extends State<ConversionPage>
               children: [
                 const Text(
                   "Jumlah Input",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1B5E20),
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -97,10 +100,7 @@ class _ConversionPageState extends State<ConversionPage>
                 const SizedBox(height: 24),
                 const Text(
                   "Mata Uang Tujuan",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1B5E20),
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
                 ),
                 const SizedBox(height: 12),
                 Obx(
@@ -138,7 +138,7 @@ class _ConversionPageState extends State<ConversionPage>
                   : controller.handleCurrencyConversion,
               isLoading: controller.isLoadingCurrency.value,
               text: "Hitung Kurs Eco",
-              icon: Icons.monetization_on_rounded, // Sudah diganti jadi ikon uang/dollar
+              icon: Icons.monetization_on_rounded,
             ),
           ),
           const SizedBox(height: 32),
@@ -159,6 +159,7 @@ class _ConversionPageState extends State<ConversionPage>
     );
   }
 
+  // --- TAB WAKTU DUNIA ---
   Widget _buildTimeTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -172,15 +173,19 @@ class _ConversionPageState extends State<ConversionPage>
                   style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  DateFormat('HH:mm').format(DateTime.now()),
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1B5E20),
-                    letterSpacing: -1,
-                  ),
-                ),
+                // Obx ini akan rebuild setiap detik mengikuti timer di controller
+                Obx(() {
+                  controller.remoteTime.value; // Trigger rebuild
+                  return Text(
+                    DateFormat('HH:mm:ss').format(DateTime.now()),
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1B5E20),
+                      letterSpacing: -1,
+                    ),
+                  );
+                }),
               ],
             ),
           ),
@@ -234,13 +239,20 @@ class _ConversionPageState extends State<ConversionPage>
           ),
           const SizedBox(height: 32),
           Obx(() {
-            if (controller.remoteTime.value == "--:--") {
+            if (controller.remoteTime.value.contains("--")) {
               return Text(
                 "Pilih tujuan untuk sinkronisasi waktu",
                 style: TextStyle(color: Colors.grey[400], fontStyle: FontStyle.italic),
               );
             }
-            int hour = int.tryParse(controller.remoteTime.value.split(':')[0]) ?? 0;
+
+            int hour = 0;
+            try {
+              hour = int.parse(controller.remoteTime.value.split(':')[0]);
+            } catch (e) {
+              hour = 0;
+            }
+
             String tip = (hour >= 18 || hour < 6)
                 ? "Di sana sudah malam. Jangan lupa matikan alat elektronik yang tidak dipakai! 🌙"
                 : "Di sana sedang siang hari. Manfaatkan cahaya alami untuk hemat energi! ☀️";
@@ -258,7 +270,7 @@ class _ConversionPageState extends State<ConversionPage>
     );
   }
 
-  // --- Pembantu Widget ---
+  // --- HELPER WIDGETS ---
   Widget _buildEcoTipBox(String pesan) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -290,11 +302,7 @@ class _ConversionPageState extends State<ConversionPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(10),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
+          BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 15, offset: const Offset(0, 8)),
         ],
       ),
       child: child,

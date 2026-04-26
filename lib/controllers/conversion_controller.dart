@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -14,10 +15,13 @@ class ConversionController extends GetxController {
 
   // --- State Waktu Dunia ---
   var selectedTimezone = 'Asia/Jakarta'.obs;
-  var remoteTime = "--:--".obs;
+  var remoteTime = "--:--:--".obs;
   var remoteDate = "".obs;
   var isLoadingTime = false.obs;
+  
+  Timer? _timer;
 
+  // Variabel yang tadi hilang (Penyebab Error)
   final Map<String, String> currencyTips = {
     'USD': 'Gunakan tumbler di US bisa dapet diskon kopi di banyak kedai! ☕',
     'SGD': 'Singapura punya sistem MRT yang sangat bersih dan hemat emisi! 🚆',
@@ -38,11 +42,15 @@ class ConversionController extends GetxController {
     'Makkah (Saudi Arabia)': {'zone': 'Asia/Riyadh', 'offset': 3},
   };
 
-  // --- Logic: Konversi Mata Uang ---
+  @override
+  void onClose() {
+    _timer?.cancel();
+    super.onClose();
+  }
+
   Future<void> handleCurrencyConversion() async {
     if (amountController.text.isEmpty) return;
     isLoadingCurrency.value = true;
-
     final apiKey = dotenv.env['KURS_API_KEY'];
     final url = "https://v6.exchangerate-api.com/v6/$apiKey/pair/IDR/${selectedCurrency.value}";
 
@@ -55,28 +63,32 @@ class ConversionController extends GetxController {
         resultCurrency.value = amount * rate;
       }
     } catch (e) {
-      Get.snackbar("Error", "Gagal mengambil data kurs.", backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar("Error", "Gagal mengambil data kurs.");
     } finally {
       isLoadingCurrency.value = false;
     }
   }
 
-  // --- Logic: Konversi Waktu ---
   void handleTimeConversion() {
+    _timer?.cancel();
     isLoadingTime.value = true;
-    Future.delayed(const Duration(milliseconds: 500), () {
-      DateTime nowUtc = DateTime.now().toUtc();
-      int offset = timezones.entries
-          .firstWhere((e) => e.value['zone'] == selectedTimezone.value)
-          .value['offset'];
-
-      DateTime targetTime = nowUtc.add(Duration(hours: offset));
-      List<String> days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-      String dayName = days[targetTime.weekday % 7];
-      
-      remoteTime.value = DateFormat('HH:mm').format(targetTime);
-      remoteDate.value = "$dayName, ${targetTime.day}-${targetTime.month}-${targetTime.year}";
+    _updateClock();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _updateClock();
+    });
+    Future.delayed(const Duration(milliseconds: 300), () {
       isLoadingTime.value = false;
     });
+  }
+
+  void _updateClock() {
+    DateTime nowUtc = DateTime.now().toUtc();
+    int offset = timezones.values
+        .firstWhere((e) => e['zone'] == selectedTimezone.value)['offset'];
+    DateTime targetTime = nowUtc.add(Duration(hours: offset));
+    List<String> days = ["", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+    String dayName = days[targetTime.weekday];
+    remoteTime.value = DateFormat('HH:mm:ss').format(targetTime);
+    remoteDate.value = "$dayName, ${targetTime.day}-${targetTime.month}-${targetTime.year}";
   }
 }
