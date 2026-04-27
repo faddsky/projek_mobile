@@ -198,9 +198,9 @@ class GamePage extends StatelessWidget {
             SizedBox(height: 8),
             Text("3. Hindari sampah organik (Nyawa -1)."),
             SizedBox(height: 8),
-            Text("4. Tangkap BOLT untuk mengumpulkan BOM."),
+            Text("4. Tangkap BOM untuk mengumpulkan BOLT."),
             SizedBox(height: 8),
-            Text("5. KOCOK HP saat punya BOM untuk ledakkan sampah organik!"),
+            Text("5. KOCOK HP saat punya BOLT untuk ledakkan sampah organik!"),
           ],
         ),
         actions: [

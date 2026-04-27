@@ -11,7 +11,12 @@ class FallingItem {
   double x, y;
   String imagePath;
   TrashType type;
-  FallingItem({required this.x, required this.y, required this.imagePath, required this.type});
+  FallingItem({
+    required this.x,
+    required this.y,
+    required this.imagePath,
+    required this.type,
+  });
 }
 
 class GameController extends GetxController {
@@ -38,7 +43,7 @@ class GameController extends GetxController {
 
     _accelSubscription = accelerometerEventStream().listen((event) {
       if (isGameOver.value || !isGameStarted.value || isExploding.value) return;
-      
+
       // Sensitivitas gerak tong (Tilt)
       double targetX = -event.x * 55;
       posX.value = (posX.value * 0.75) + (targetX * 0.25); // Smoothing
@@ -46,10 +51,14 @@ class GameController extends GetxController {
     });
 
     _gyroSubscription = gyroscopeEventStream().listen((event) {
-      if (!isGameStarted.value || isGameOver.value || bombCount.value <= 0 || isExploding.value) return;
-      
+      if (!isGameStarted.value ||
+          isGameOver.value ||
+          bombCount.value <= 0 ||
+          isExploding.value)
+        return;
+
       // Deteksi kocok (Shake) untuk bom
-      if ((event.x.abs() + event.y.abs() + event.z.abs()) > 15) {
+      if ((event.x.abs() + event.y.abs() + event.z.abs()) > 8) {
         handleShakeExplosion();
       }
     });
@@ -60,10 +69,13 @@ class GameController extends GetxController {
     isGameStarted.value = true;
     isGameOver.value = false;
     _startSpawnTimer();
-    
+
     // Update fisika setiap 30ms
-    updateTimer = Timer.periodic(const Duration(milliseconds: 30), (_) => _updatePhysics());
-    
+    updateTimer = Timer.periodic(
+      const Duration(milliseconds: 30),
+      (_) => _updatePhysics(),
+    );
+
     // Naikkan kesulitan setiap 30 detik
     difficultyTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (isGameOver.value) return;
@@ -77,41 +89,58 @@ class GameController extends GetxController {
     spawnTimer?.cancel();
     // Semakin tinggi level, semakin cepat spawn (minimal 400ms)
     int spawnSpeed = max(400, 1400 - (difficultyLevel.value * 150));
-    spawnTimer = Timer.periodic(Duration(milliseconds: spawnSpeed), (_) => spawnTrash());
+    spawnTimer = Timer.periodic(
+      Duration(milliseconds: spawnSpeed),
+      (_) => spawnTrash(),
+    );
   }
 
   void spawnTrash() {
     bool isRecyclable = _random.nextDouble() > 0.4;
-    
+
     List<String> recyclableList = [
-      'bottle.png', 'cardboard.png', 'paper.png', 
-      'board.png', 'book.png', 'can.png', 'botle2.png'
+      'bottle.png',
+      'cardboard.png',
+      'paper.png',
+      'board.png',
+      'book.png',
+      'can.png',
+      'botle2.png',
     ];
-    
+
     List<String> nonRecyclableList = [
-      'apple.png', 'banana.png', 'cake.png', 
-      'strawberry.png', 'apel2.png', 'carrot.png', 'banana2.png'
+      'apple.png',
+      'banana.png',
+      'cake.png',
+      'strawberry.png',
+      'apel2.png',
+      'carrot.png',
+      'banana2.png',
     ];
 
-    String path = isRecyclable 
-      ? recyclableList[_random.nextInt(recyclableList.length)] 
-      : nonRecyclableList[_random.nextInt(nonRecyclableList.length)];
+    String path = isRecyclable
+        ? recyclableList[_random.nextInt(recyclableList.length)]
+        : nonRecyclableList[_random.nextInt(nonRecyclableList.length)];
 
-    fallingItems.add(FallingItem(
-      imagePath: 'assets/images/$path',
-      x: _random.nextDouble() * 260 - 130, 
-      y: -50,
-      type: isRecyclable ? TrashType.recyclable : TrashType.nonRecyclable,
-    ));
+    fallingItems.add(
+      FallingItem(
+        imagePath: 'assets/images/$path',
+        x: _random.nextDouble() * 260 - 130,
+        y: -50,
+        type: isRecyclable ? TrashType.recyclable : TrashType.nonRecyclable,
+      ),
+    );
   }
 
   void spawnBomb() {
-    fallingItems.add(FallingItem(
-      imagePath: 'assets/images/bomb.png',
-      x: _random.nextDouble() * 260 - 130,
-      y: -50,
-      type: TrashType.bomb,
-    ));
+    fallingItems.add(
+      FallingItem(
+        imagePath: 'assets/images/bomb.png',
+        x: _random.nextDouble() * 260 - 130,
+        y: -50,
+        type: TrashType.bomb,
+      ),
+    );
   }
 
   void _updatePhysics() {
@@ -122,8 +151,8 @@ class GameController extends GetxController {
       fallingItems[i].y += (6 + (difficultyLevel.value * 0.8));
 
       // Deteksi tabrakan dengan tong (Posisi Y antara 590-680)
-      if (fallingItems[i].y > 590 && 
-          fallingItems[i].y < 680 && 
+      if (fallingItems[i].y > 590 &&
+          fallingItems[i].y < 680 &&
           (fallingItems[i].x - posX.value).abs() < 40) {
         _handleCollision(i);
       } else if (fallingItems[i].y > 850) {
@@ -149,7 +178,7 @@ class GameController extends GetxController {
   void handleShakeExplosion() async {
     isExploding.value = true;
     bombCount.value--;
-    
+
     // Ubah semua sampah non-recyclable di layar jadi ledakan
     for (var item in fallingItems) {
       if (item.type == TrashType.nonRecyclable) {
@@ -170,10 +199,10 @@ class GameController extends GetxController {
     stopTimers();
 
     final db = Get.find<DatabaseService>();
-    
+
     // 1. Simpan poin total
     db.addGamePoints(score.value);
-    
+
     // 2. Cek dan update High Score
     await db.updateHighScore(score.value);
     int currentHigh = db.getHighScore();
@@ -182,25 +211,38 @@ class GameController extends GetxController {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("GAME OVER! 🗑️", 
-          textAlign: TextAlign.center, 
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)
+        title: const Text(
+          "GAME OVER! 🗑️",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text("Kerja bagus! Terus jaga lingkungan ya."),
             const SizedBox(height: 20),
-            Text("Skor Kamu: ${score.value}", 
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+            Text(
+              "Skor Kamu: ${score.value}",
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            Text("Skor Tertinggi: $currentHigh", 
-              style: const TextStyle(fontSize: 16, color: Colors.green, fontWeight: FontWeight.bold)
+            Text(
+              "Skor Tertinggi: $currentHigh",
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             if (score.value >= currentHigh && score.value > 0)
               const Padding(
                 padding: EdgeInsets.only(top: 8.0),
-                child: Text("REKOR BARU! 🎉", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+                child: Text(
+                  "REKOR BARU! 🎉",
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
           ],
         ),
@@ -211,12 +253,17 @@ class GameController extends GetxController {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                    ),
                     onPressed: () {
                       Get.back(); // Tutup dialog
                       resetGame();
                     },
-                    child: const Text("Main Lagi", style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      "Main Lagi",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
                 TextButton(
@@ -228,7 +275,7 @@ class GameController extends GetxController {
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
       barrierDismissible: false,

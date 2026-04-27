@@ -95,7 +95,9 @@ class ScanController extends GetxController {
       const int inputSize = 224;
 
       // 1. CENTER CROP (Sinkron dengan crop_to_aspect_ratio=True di notebook)
-      int edgeSize = rawImage.width < rawImage.height ? rawImage.width : rawImage.height;
+      int edgeSize = rawImage.width < rawImage.height
+          ? rawImage.width
+          : rawImage.height;
       img.Image croppedImage = img.copyCrop(
         rawImage,
         x: (rawImage.width - edgeSize) ~/ 2,
@@ -117,7 +119,10 @@ class ScanController extends GetxController {
       var input = imageToByteListFloat32(resizedImage, inputSize);
 
       // 4. OUTPUT BUFFER
-      var output = List.filled(1 * _labels!.length, 0.0).reshape([1, _labels!.length]);
+      var output = List.filled(
+        1 * _labels!.length,
+        0.0,
+      ).reshape([1, _labels!.length]);
 
       // 5. RUN INTERPRETER
       _interpreter!.run(input, output);
@@ -153,9 +158,8 @@ class ScanController extends GetxController {
       }
 
       // Gemini Fact (Opsional)
-      // fetchFunFact(resultLabel.value);
-      funFact.value = "Fitur Eco-Fact sedang dinonaktifkan.";
-
+      fetchFunFact(resultLabel.value);
+      // funFact.value = "Fitur Eco-Fact sedang dinonaktifkan.";
     } catch (e) {
       debugPrint("❌ Error Analisis: $e");
       resultLabel.value = "Gagal menganalisa";
@@ -190,8 +194,12 @@ class ScanController extends GetxController {
       final apiKey = dotenv.env['GEMINI_API_KEY'] ?? "";
       if (apiKey.isEmpty) return;
 
-      final model = GenerativeModel(model: 'gemini-3-flash-preview', apiKey: apiKey);
-      final prompt = "Berikan 1 fun fact singkat dampak lingkungan sampah $category. Bahasa Indonesia, maks 20 kata.";
+      final model = GenerativeModel(
+        model: 'gemini-3-flash-preview',
+        apiKey: apiKey,
+      );
+      final prompt =
+          "Berikan 1 fun fact singkat dampak lingkungan sampah $category. Bahasa Indonesia, maks 20 kata.";
       final content = [Content.text(prompt)];
       final response = await model.generateContent(content);
 
