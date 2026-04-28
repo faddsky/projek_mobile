@@ -18,7 +18,6 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
   List<String> selectedDays = [];
   bool isVibrate = true;
 
-  // Warna Konsisten Emerald
   final Color primaryColor = const Color(0xFF2E7D32);
   final Color scaffoldBg = const Color(0xFFF8FAF8);
 

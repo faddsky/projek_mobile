@@ -21,9 +21,8 @@ class NotificationPage extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // AppBar yang lebih ringkas dan proporsional
           SliverAppBar(
-            expandedHeight: 90.0, // Diperkecil agar judul tidak terlalu ke bawah
+            expandedHeight: 90.0, 
             floating: true,
             pinned: true,
             elevation: 0,
@@ -46,7 +45,7 @@ class NotificationPage extends StatelessWidget {
           // Konten Utama
           notifications.isEmpty
               ? SliverFillRemaining(
-                  hasScrollBody: false, // Menghindari overflow
+                  hasScrollBody: false, 
                   child: _buildEmptyState(),
                 )
               : SliverPadding(
@@ -68,7 +67,7 @@ class NotificationPage extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return Center( // Memastikan benar-benar di tengah layar
+    return Center( 
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

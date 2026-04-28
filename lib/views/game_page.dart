@@ -31,7 +31,6 @@ class GamePage extends StatelessWidget {
             ),
           ),
         ),
-        // Tombol Back dengan pembersihan manual jika perlu
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1B5E20), size: 20),
           onPressed: () {
@@ -46,11 +45,11 @@ class GamePage extends StatelessWidget {
           Positioned.fill(
             child: Image.asset(
               'assets/images/back2.jpg', 
-              fit: BoxFit.cover, // Gunakan cover agar lebih penuh di berbagai rasio layar
+              fit: BoxFit.cover, 
             ),
           ),
 
-          // 2. HUD - Stats (Score & Hearts)
+          // Stats (Score & Hearts)
           Positioned(
             top: 20,
             left: 20,
@@ -95,7 +94,7 @@ class GamePage extends StatelessWidget {
             ),
           ),
 
-          // 3. HUD - Bomb Bolt Icons
+          // Bomb Bolt Icons
           Positioned(
             top: 70,
             left: 20,
@@ -115,7 +114,7 @@ class GamePage extends StatelessWidget {
             ),
           ),
 
-          // 4. Render Falling Items (Trash/Bombs)
+          //Render Falling Items (Trash/Bombs)
           Obx(
             () => Stack(
               children: controller.fallingItems.map((item) {
@@ -132,7 +131,7 @@ class GamePage extends StatelessWidget {
             ),
           ),
 
-          // 5. Player Bin (Tong Sampah)
+          //Player Bin (Tong Sampah)
           Obx(
             () => Align(
               alignment: Alignment.bottomCenter,
@@ -150,7 +149,7 @@ class GamePage extends StatelessWidget {
             ),
           ),
 
-          // 6. Explosion Overlay (Efek Kocok HP)
+          //Explosion Overlay
           Obx(
             () => controller.isExploding.value
                 ? Positioned.fill(
@@ -176,7 +175,7 @@ class GamePage extends StatelessWidget {
     );
   }
 
-  // --- Dialog Tutorial ---
+  //  Dialog Tutorial
   void _showTutorialDialog(BuildContext context, GameController controller) {
     showDialog(
       context: context,

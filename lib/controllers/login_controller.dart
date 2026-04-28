@@ -48,7 +48,6 @@ class LoginController extends GetxController {
 
         Get.offAllNamed('/home');
 
-        // LOGIKA POP-UP AESTHETIC
         if (!alreadyEnabled || lastUser != cleanUsername) {
           Future.delayed(const Duration(milliseconds: 800), () {
             _showOfferBiometricDialog(cleanUsername);
@@ -76,7 +75,7 @@ class LoginController extends GetxController {
     }
   }
 
-  // --- TAMPILAN POP-UP BIOMETRIK AESTHETIC ---
+  // TAMPILAN POP-UP BIOMETRIK
   void _showOfferBiometricDialog(String username) {
     Get.dialog(
       Dialog(
@@ -165,7 +164,7 @@ class LoginController extends GetxController {
     );
   }
 
-  // --- LOGIN BIOMETRIK ---
+  // LOGIN BIOMETRIK
   Future<void> loginWithBiometric() async {
     try {
       var session = Hive.box(DatabaseService.sessionBox);

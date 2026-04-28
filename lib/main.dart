@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // 1. Import ini
+import 'package:flutter_dotenv/flutter_dotenv.dart'; 
 import 'routes/app_pages.dart';
 import 'bindings/initial_binding.dart';
 import 'services/database_service.dart';
@@ -9,7 +9,7 @@ void main() async {
   // Menyiapkan plugin sistem sebelum aplikasi dijalankan
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Load file .env agar API Key Gemini bisa dibaca
+  // Load file .env 
   try {
     await dotenv.load(fileName: ".env");
     debugPrint("Environment variables loaded successfully! ✅");
@@ -17,7 +17,7 @@ void main() async {
     debugPrint("Error loading .env file: $e ❌");
   }
 
-  // Inisialisasi Database (termasuk Notifikasi di dalamnya)
+  // Inisialisasi Database 
   await Get.putAsync(() => DatabaseService().init());
 
   runApp(const EcoStepApp());

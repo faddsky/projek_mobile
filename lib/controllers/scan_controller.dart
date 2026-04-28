@@ -43,7 +43,6 @@ class ScanController extends GetxController {
           .where((s) => s.isNotEmpty)
           .toList();
 
-      // Gunakan nama file model terbaru kamu
       final byteData = await rootBundle.load(
         'assets/models/model_ecostep_final.tflite',
       );
@@ -94,7 +93,7 @@ class ScanController extends GetxController {
 
       const int inputSize = 224;
 
-      // 1. CENTER CROP (Sinkron dengan crop_to_aspect_ratio=True di notebook)
+      // CENTER CROP 
       int edgeSize = rawImage.width < rawImage.height
           ? rawImage.width
           : rawImage.height;
@@ -106,7 +105,7 @@ class ScanController extends GetxController {
         height: edgeSize,
       );
 
-      // 2. RESIZE ke 224x224
+      // RESIZE ke 224x224
       img.Image resizedImage = img.copyResize(
         croppedImage,
         width: inputSize,
@@ -114,17 +113,17 @@ class ScanController extends GetxController {
         interpolation: img.Interpolation.linear,
       );
 
-      // 3. INPUT PREPARATION
-      // Mengirim nilai 0-255 karena model sudah punya layer Rescaling internal
+      // INPUT PREPARATION
+      // Mengirim nilai 0-255 
       var input = imageToByteListFloat32(resizedImage, inputSize);
 
-      // 4. OUTPUT BUFFER
+      //  OUTPUT BUFFER
       var output = List.filled(
         1 * _labels!.length,
         0.0,
       ).reshape([1, _labels!.length]);
 
-      // 5. RUN INTERPRETER
+      // RUN INTERPRETER
       _interpreter!.run(input, output);
 
       List<double> probabilities = List<double>.from(output[0]);
@@ -140,7 +139,7 @@ class ScanController extends GetxController {
         }
       }
 
-      // 6. UPDATE UI
+      // UPDATE UI
       resultLabel.value = _labels![highestIndex].toUpperCase();
       confidence.value = highestProb * 100;
       isLowConfidence.value = confidence.value < threshold;
@@ -157,7 +156,7 @@ class ScanController extends GetxController {
         debugPrint("⚠️ Gagal simpan ke DB: $dbError");
       }
 
-      // Gemini Fact (Opsional)
+      // Gemini Fact 
       fetchFunFact(resultLabel.value);
       // funFact.value = "Fitur Eco-Fact sedang dinonaktifkan.";
     } catch (e) {
@@ -177,8 +176,7 @@ class ScanController extends GetxController {
       for (var x = 0; x < inputSize; x++) {
         var pixel = image.getPixel(x, y);
 
-        // KITA KIRIM NILAI MENTAH 0-255
-        // Layer Rescaling(1./127.5, offset=-1) di model kamu yang akan menormalkannya
+        // Layer Rescaling(1./127.5, offset=-1) 
         buffer[pixelIndex++] = pixel.r.toDouble();
         buffer[pixelIndex++] = pixel.g.toDouble();
         buffer[pixelIndex++] = pixel.b.toDouble();

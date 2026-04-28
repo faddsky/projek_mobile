@@ -115,7 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- HEADER PROFIL (FIXED PHOTO) ---
+  // HEADER PROFIL
   Widget _buildProfileHeader(String? path, String name, String email, Box box, String userKey, dynamic data) {
     ImageProvider profileImage;
     if (path != null && path.isNotEmpty && File(path).existsSync()) {
@@ -177,7 +177,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- REUSABLE DIALOG BASE (Style Biometrik) ---
+  // --- REUSABLE DIALOG BASE 
   Widget _buildBaseDialog({required String title, required Widget content, required VoidCallback onConfirm, bool isDanger = false}) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -229,7 +229,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- DIALOG DETAIL PROFIL ---
+  //  DIALOG DETAIL PROFIL
   void _showEditDialog(Box authBox, String usernameKey, dynamic oldData) {
     final nameCtrl = TextEditingController(text: oldData['username']);
     final emailCtrl = TextEditingController(text: oldData['email']);
@@ -251,7 +251,7 @@ class _ProfilePageState extends State<ProfilePage> {
     ));
   }
 
-  // --- DIALOG UBAH KATA SANDI (FIXED DENGAN KONFIRMASI) ---
+  //  DIALOG UBAH KATA SANDI 
   void _showChangePasswordDialog(Box authBox, String usernameKey, dynamic oldData, DatabaseService dbService) {
     final oldPass = TextEditingController();
     final newPass = TextEditingController();
@@ -284,7 +284,7 @@ class _ProfilePageState extends State<ProfilePage> {
     ));
   }
 
-  // --- DIALOG KELUAR ---
+  // DIALOG KELUAR 
   void _showLogoutDialog(LoginController controller) {
     hapusBiometrik.value = false;
     Get.dialog(_buildBaseDialog(

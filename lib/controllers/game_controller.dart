@@ -20,7 +20,7 @@ class FallingItem {
 }
 
 class GameController extends GetxController {
-  // --- Variabel Reaktif ---
+  // Variabel Reaktif
   var posX = 0.0.obs;
   var score = 0.obs;
   var lives = 3.obs;
@@ -36,7 +36,7 @@ class GameController extends GetxController {
   Timer? spawnTimer, updateTimer, difficultyTimer;
   final Random _random = Random();
 
-  // --- Inisialisasi Sensor ---
+  // Inisialisasi Sensor
   void initSensors(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double limit = (screenWidth / 2) - 50;
@@ -64,7 +64,7 @@ class GameController extends GetxController {
     });
   }
 
-  // --- Logika Game Loop ---
+  // Logika Game Loop
   void startGame() {
     isGameStarted.value = true;
     isGameOver.value = false;
@@ -150,7 +150,7 @@ class GameController extends GetxController {
       // Kecepatan jatuh bertambah sesuai level
       fallingItems[i].y += (6 + (difficultyLevel.value * 0.8));
 
-      // Deteksi tabrakan dengan tong (Posisi Y antara 590-680)
+      // Deteksi tabrakan dengan tong 
       if (fallingItems[i].y > 590 &&
           fallingItems[i].y < 680 &&
           (fallingItems[i].x - posX.value).abs() < 40) {
@@ -193,21 +193,21 @@ class GameController extends GetxController {
     isExploding.value = false;
   }
 
-  // --- Game Over & Database Sync ---
+  // Game Over & Database Sync 
   void handleGameOver() async {
     isGameOver.value = true;
     stopTimers();
 
     final db = Get.find<DatabaseService>();
 
-    // 1. Simpan poin total
+    // Simpan poin total
     db.addGamePoints(score.value);
 
-    // 2. Cek dan update High Score
+    // Cek dan update High Score
     await db.updateHighScore(score.value);
     int currentHigh = db.getHighScore();
 
-    // 3. Munculkan Dialog Hasil
+    // Munculkan Dialog Hasil
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

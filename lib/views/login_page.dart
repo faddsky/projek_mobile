@@ -8,13 +8,11 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tetap menggunakan controller yang sama
     final controller = Get.put(LoginController());
     final userController = TextEditingController();
     final passController = TextEditingController();
 
     return Scaffold(
-      // Menggunakan background putih bersih agar elemen hijau lebih menonjol
       backgroundColor: const Color(0xFFF8FAF8),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -23,7 +21,6 @@ class LoginPage extends StatelessWidget {
             children: [
               const SizedBox(height: 60),
 
-              // Logo dengan Glassmorphism effect sederhana
               Center(
                 child: Container(
                   padding: const EdgeInsets.all(25),
@@ -42,14 +39,13 @@ class LoginPage extends StatelessWidget {
                   child: const Icon(
                     Icons.eco_rounded,
                     size: 80,
-                    color: Color(0xFF4CAF50), // Hijau lebih cerah (Aesthetic)
+                    color: Color(0xFF4CAF50),
                   ),
                 ),
               ),
 
               const SizedBox(height: 30),
 
-              // Judul & Subtitle
               Text(
                 "Selamat Datang",
                 style: TextStyle(
@@ -72,7 +68,6 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 45),
 
-              // Input Username
               _buildTextField(
                 controller: userController,
                 label: "Nama Pengguna",
@@ -81,7 +76,6 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Input Password dengan Obx
               Obx(
                 () => _buildTextField(
                   controller: passController,
@@ -98,7 +92,6 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 35),
 
-              // Tombol Masuk - Dibuat sedikit melengkung & gradasi
               Container(
                 width: double.infinity,
                 height: 55,
@@ -142,7 +135,6 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // Divider "ATAU"
               Row(
                 children: [
                   Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
@@ -159,16 +151,15 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Biometric Section - SEKARANG LINGKARAN
               GestureDetector(
                 onTap: () => controller.loginWithBiometric(),
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(15), // padding sedikit ditambah agar proporsional
+                      padding: const EdgeInsets.all(15),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE8F5E9),
-                        shape: BoxShape.circle, // Diubah dari Box menjadi Circle
+                        shape: BoxShape.circle, 
                         boxShadow: [
                           BoxShadow(
                             color: Colors.green.withValues(alpha: 0.1),

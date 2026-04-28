@@ -58,7 +58,7 @@ class _HomeTabState extends State<HomeTab> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
-          selectedItemColor: const Color(0xFF2E7D32), // Emerald Bold
+          selectedItemColor: const Color(0xFF2E7D32), 
           unselectedItemColor: Colors.grey[400],
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
@@ -146,11 +146,11 @@ class _HomeTabState extends State<HomeTab> {
     int aqi = airData['list'][0]['main']['aqi'];
     List<Color> colors = [
       Colors.grey,
-      const Color(0xFF4CAF50), // Sehat
-      const Color(0xFF8BC34A), // Baik
-      const Color(0xFFFFB300), // Sedikit Polusi
-      const Color(0xFFFF7043), // Buruk
-      const Color(0xFFD32F2F), // Bahaya
+      const Color(0xFF4CAF50), 
+      const Color(0xFF8BC34A), 
+      const Color(0xFFFFB300), 
+      const Color(0xFFFF7043), 
+      const Color(0xFFD32F2F), 
     ];
     List<String> status = ["", "Sangat Sehat 🌱", "Cukup Baik 👍", "Sedikit Polusi 😐", "Udara Buruk 😷", "Bahaya! ⚠️"];
 

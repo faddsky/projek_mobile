@@ -67,7 +67,7 @@ class _ConversionPageState extends State<ConversionPage>
     );
   }
 
-  // --- TAB MATA UANG ---
+  //  TAB MATA UANG 
   Widget _buildCurrencyTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -159,7 +159,7 @@ class _ConversionPageState extends State<ConversionPage>
     );
   }
 
-  // --- TAB WAKTU DUNIA ---
+  // TAB WAKTU DUNIA 
   Widget _buildTimeTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -175,7 +175,7 @@ class _ConversionPageState extends State<ConversionPage>
                 const SizedBox(height: 8),
                 // Obx ini akan rebuild setiap detik mengikuti timer di controller
                 Obx(() {
-                  controller.remoteTime.value; // Trigger rebuild
+                  controller.remoteTime.value; 
                   return Text(
                     DateFormat('HH:mm:ss').format(DateTime.now()),
                     style: const TextStyle(
@@ -270,7 +270,7 @@ class _ConversionPageState extends State<ConversionPage>
     );
   }
 
-  // --- HELPER WIDGETS ---
+  // HELPER WIDGETS 
   Widget _buildEcoTipBox(String pesan) {
     return Container(
       padding: const EdgeInsets.all(16),

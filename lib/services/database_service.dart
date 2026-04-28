@@ -53,7 +53,7 @@ class DatabaseService extends GetxService {
         ?.requestNotificationsPermission();
   }
 
-  // --- MANAJEMEN RIWAYAT NOTIFIKASI ---
+  //  MANAJEMEN RIWAYAT NOTIFIKASI 
   void updateUnreadCount() {
     var logs = getAllNotifications();
     unreadCount.value = logs.where((item) => item['isRead'] == false).length;
@@ -111,7 +111,7 @@ class DatabaseService extends GetxService {
     unreadCount.value = 0;
   }
 
-  // --- GREEN TIPS HARIAN ---
+  // GREEN TIPS HARIAN 
   void checkAndSendGreenTip() {
     var box = Hive.box(notificationBox);
     var session = Hive.box(sessionBox);
@@ -137,7 +137,7 @@ class DatabaseService extends GetxService {
     }
   }
 
-  // --- LOGIKA PENJADWALAN ALARM ---
+  //  LOGIKA PENJADWALAN ALARM 
   Future<void> _scheduleAlarmNotification(int id, Map<String, dynamic> alarmData) async {
     if (alarmData['isActive'] == false) {
       await _notificationsPlugin.cancel(id);
@@ -188,7 +188,7 @@ class DatabaseService extends GetxService {
     }
   }
 
-  // --- PEMICU ALARM & OTOMATIS SIMPAN RIWAYAT ---
+  // PEMICU ALARM & OTOMATIS SIMPAN RIWAYAT 
   Future<void> triggerAlarm(String time, String label) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
     AndroidNotificationDetails(
@@ -225,7 +225,7 @@ class DatabaseService extends GetxService {
     );
   }
 
-  // --- MANAJEMEN ALARM ---
+  // MANAJEMEN ALARM 
   List<dynamic> getAlarmsFromActivity() {
     return Hive.box(activityBox).get('alarm_list', defaultValue: []);
   }
@@ -276,7 +276,7 @@ class DatabaseService extends GetxService {
     saveNotification("Status Alarm", "Jadwal '${currentAlarms[index]['label']}' telah $msg.");
   }
 
-  // --- DEBUG & AUTH ---
+  //  DEBUG & AUTH
   void debugCekSemuaBox() {
     List<String> semuaBox = [authBox, profileBox, historyBox, activityBox, sessionBox, notificationBox];
     debugPrint("========== MONITORING DATABASE ==========");
@@ -293,7 +293,7 @@ class DatabaseService extends GetxService {
     return sha256.convert(bytes).toString();
   }
 
-  // --- SCAN & POINTS ---
+  // SCAN & POINTS 
   void saveScanResult(String label, double confidence, String funFact) {
     var box = Hive.box(historyBox);
     var session = Hive.box(sessionBox);
@@ -313,8 +313,7 @@ class DatabaseService extends GetxService {
     }
   }
 
-  // --- LOGIKA POIN & HIGH SCORE ---
-
+  // LOGIKA POIN & HIGH SCORE
   int getTotalPoints() {
     return Hive.box(profileBox).get('total_points', defaultValue: 0);
   }

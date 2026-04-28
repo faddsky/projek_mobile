@@ -7,13 +7,13 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ConversionController extends GetxController {
-  // --- State Mata Uang ---
+  // State Mata Uang 
   final amountController = TextEditingController();
   var resultCurrency = 0.0.obs;
   var selectedCurrency = 'USD'.obs;
   var isLoadingCurrency = false.obs;
 
-  // --- State Waktu Dunia ---
+  // State Waktu Dunia
   var selectedTimezone = 'Asia/Jakarta'.obs;
   var remoteTime = "--:--:--".obs;
   var remoteDate = "".obs;
@@ -21,7 +21,6 @@ class ConversionController extends GetxController {
   
   Timer? _timer;
 
-  // Variabel yang tadi hilang (Penyebab Error)
   final Map<String, String> currencyTips = {
     'USD': 'Gunakan tumbler di US bisa dapet diskon kopi di banyak kedai! ☕',
     'SGD': 'Singapura punya sistem MRT yang sangat bersih dan hemat emisi! 🚆',

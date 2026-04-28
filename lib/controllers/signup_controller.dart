@@ -11,7 +11,7 @@ class SignUpController extends GetxController {
   var isLoading = false.obs;
   var selectedImagePath = ''.obs;
 
-  // Fungsi Hash Password agar aman di database
+  // Fungsi Hash Password 
   String hashPassword(String password) {
     var bytes = utf8.encode(password);
     return sha256.convert(bytes).toString();
@@ -29,13 +29,13 @@ class SignUpController extends GetxController {
   }
 
   void register(String username, String email, String password) async {
-    // 1. Validasi Input Kosong
+    //  Validasi Input Kosong
     if (username.trim().isEmpty || email.trim().isEmpty || password.trim().isEmpty) {
       _showError("Harap isi semua field!");
       return;
     }
 
-    // 2. Validasi Format Email
+    // Validasi Format Email
     if (!GetUtils.isEmail(email.trim())) {
       _showError("Format email tidak valid! Gunakan @gmail.com atau lainnya.");
       return;
@@ -47,14 +47,14 @@ class SignUpController extends GetxController {
       String cleanUsername = username.trim();
       String cleanEmail = email.trim().toLowerCase();
 
-      // 3. Validasi Username Terdaftar
+      //  Validasi Username Terdaftar
       if (box.containsKey('user_$cleanUsername')) {
         _showError("Username '$cleanUsername' sudah terdaftar!");
         isLoading.value = false;
         return;
       }
 
-      // 4. Validasi Email Terdaftar (Cek manual di Hive)
+      // Validasi Email Terdaftar 
       var allUsers = box.values.toList();
       bool isEmailExist = allUsers.any((user) {
         if (user is Map) {
@@ -69,7 +69,7 @@ class SignUpController extends GetxController {
         return;
       }
 
-      // 5. Simpan ke Hive
+      // Simpan ke Hive
       await box.put('user_$cleanUsername', {
         'username': cleanUsername,
         'email': cleanEmail,
@@ -77,11 +77,11 @@ class SignUpController extends GetxController {
         'profilePic': selectedImagePath.value,
       });
 
-      // --- BAGIAN NOTIFIKASI BERHASIL & REDIRECT ---
+      // BAGIAN NOTIFIKASI BERHASIL & REDIRECT 
       Get.snackbar(
         "Pendaftaran Berhasil", 
         "Akun $cleanUsername berhasil dibuat!", 
-        backgroundColor: const Color(0xFF2E7D32), // Hijau sesuai tema EcoStep
+        backgroundColor: const Color(0xFF2E7D32), 
         colorText: Colors.white,
         icon: const Icon(Icons.check_circle, color: Colors.white),
         snackPosition: SnackPosition.TOP,
@@ -93,7 +93,6 @@ class SignUpController extends GetxController {
       // Reset path gambar setelah sukses
       selectedImagePath.value = ''; 
       
-      // Tunggu 2 detik (sesuai durasi snackbar) lalu balik ke Login
       Future.delayed(const Duration(seconds: 2), () {
         Get.back(); // Kembali ke halaman Login
       }); 

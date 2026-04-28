@@ -11,7 +11,7 @@ class ScanPage extends StatelessWidget {
     final controller = Get.put(ScanController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAF8), // Sage background tipis
+      backgroundColor: const Color(0xFFF8FAF8), 
       appBar: AppBar(
         title: const Text(
           "Eco Scan",
@@ -35,7 +35,6 @@ class ScanPage extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                // PREVIEW CONTAINER DENGAN GLASSMORPHISM EFFECT
                 Container(
                   width: double.infinity,
                   height: 400,
@@ -110,7 +109,6 @@ class ScanPage extends StatelessWidget {
                   ),
                 ),
 
-                // BUTTON SOURCE AREA (MODERN CARD)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
@@ -190,7 +188,6 @@ class ScanPage extends StatelessWidget {
             ),
           ),
 
-          // LOADING OVERLAY (BLUR EFFECT)
           Obx(
             () => controller.isLoading.value
                 ? Container(
@@ -291,7 +288,6 @@ class ScanPage extends StatelessWidget {
             ),
             const SizedBox(height: 25),
 
-            // ECO-FACT BOX (PREMIUM STYLE)
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -360,7 +356,7 @@ class ScanPage extends StatelessWidget {
         ),
       ),
       isScrollControlled: true,
-      backgroundColor: Colors.transparent, // Fixes white corner in bottom sheet
+      backgroundColor: Colors.transparent, 
     );
   }
 

@@ -15,7 +15,6 @@ class SignUpPage extends StatelessWidget {
     final passController = TextEditingController();
 
     return Scaffold(
-      // Menggunakan background putih kehijauan yang segar
       backgroundColor: const Color(0xFFF8FAF8),
       appBar: AppBar(
         backgroundColor: Colors.transparent, 
@@ -36,7 +35,6 @@ class SignUpPage extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
             
-            // --- BAGIAN AVATAR PICKER (Aesthetic Style) ---
             GestureDetector(
               onTap: () => controller.pickImage(),
               child: Stack(
@@ -88,7 +86,6 @@ class SignUpPage extends StatelessWidget {
             ),
             const SizedBox(height: 40),
 
-            // --- INPUT FIELDS (Matching Login Style) ---
             _buildTextField(
               controller: userController,
               label: "Username",
@@ -113,7 +110,7 @@ class SignUpPage extends StatelessWidget {
             )),
             const SizedBox(height: 40),
 
-            // --- BUTTON SIGN UP (Gradient Style) ---
+            // BUTTON SIGN UP 
             Obx(() => Container(
               width: double.infinity,
               height: 55,
@@ -164,7 +161,6 @@ class SignUpPage extends StatelessWidget {
     );
   }
 
-  // Helper widget agar serasi dengan LoginPage
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,

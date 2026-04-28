@@ -17,10 +17,10 @@ class _AlarmPageState extends State<AlarmPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Ambil ID User yang sedang login
+    // Ambil ID User yang sedang login
     final String currentUserId = sessionBox.get('currentUser', defaultValue: 'guest');
 
-    // 2. Ambil semua alarm dan filter hanya untuk user ini
+    // Ambil semua alarm dan filter hanya untuk user ini
     final List<dynamic> allAlarms = dbService.getAlarmsFromActivity();
     final List<dynamic> userAlarms = allAlarms.where((alarm) => alarm['user'] == currentUserId).toList();
 

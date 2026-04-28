@@ -3,7 +3,7 @@ import 'package:projek_mobile/services/air_service.dart';
 import 'package:projek_mobile/services/database_service.dart';
 
 class HomeController extends GetxController {
-  // --- Logika Udara ---
+  // Logika Udara
   var airData = Rxn<Map<String, dynamic>>();
   var locationName = "Mencari wilayah...".obs;
   var isLoading = true.obs;

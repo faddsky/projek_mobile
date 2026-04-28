@@ -29,7 +29,7 @@ class AirService {
     }
   }
 
-  // --- FUNGSI: Mendapatkan Nama Kota ---
+  // FUNGSI: Mendapatkan Nama Kota 
   Future<String> getLocationName(double lat, double lon) async {
     try {
       // Menggunakan API Geocoding bawaan OpenWeather
@@ -49,7 +49,7 @@ class AirService {
     }
   }
 
-  // --- FUNGSI: Logika Geolocation (BAGIAN YANG DIPERBAIKI) ---
+  // FUNGSI: Logika Geolocation
   Future<Position> _getGeoLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -69,11 +69,9 @@ class AirService {
         return _getDefaultLocation();
       }
 
-      // PERBAIKAN: Menghapus pengambilan lokasi terakhir (cache) agar data lebih segar
-      // dan meningkatkan akurasi ke 'high' agar lokasi lebih tepat.
       return await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high, // Akurasi ditingkatkan ke tinggi
+          accuracy: LocationAccuracy.high, 
           timeLimit: Duration(seconds: 10), // Menambah waktu tunggu agar GPS bisa mengunci posisi
         ),
       );
@@ -82,7 +80,7 @@ class AirService {
     }
   }
 
-  // --- FUNGSI: Default Lokasi (Jakarta) ---
+  // FUNGSI: Default Lokasi (Jakarta) 
   Position _getDefaultLocation() {
     return Position(
       latitude: -6.175392, 
