@@ -75,7 +75,7 @@ class _AddAlarmPageState extends State<AddAlarmPage> {
                 final result = {
                   "time": selectedTime.format(context).toString(),
                   "days": selectedDays.isEmpty ? "Sekali" : selectedDays.join(", "),
-                  "label": labelController.text.isEmpty ? "Buang Sampah" : labelController.text,
+                  "label": labelController.text.isEmpty ? "Jadwal Buang Sampah" : labelController.text,
                   "isActive": true,
                   "isVibrate": isVibrate,
                 };
